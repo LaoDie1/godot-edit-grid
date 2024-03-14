@@ -36,7 +36,7 @@ var _data : Dictionary = {}
 var _texture_cache : Dictionary = {}
 
 
-func _ready():
+func _init():
 	clip_contents = true
 	resized.connect(queue_redraw)
 	queue_redraw()
