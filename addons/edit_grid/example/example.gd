@@ -31,18 +31,6 @@ func _ready():
 	})
 
 
-var _last_hover_cell := Vector2i(-1, -1)
-
-func _on_edit_grid_gui_input(event):
-	if event is InputEventMouseMotion:
-		var cell_coords = edit_grid.get_cell_by_mouse_pos()
-		if not edit_grid.is_highlight_cell(cell_coords):
-			if _last_hover_cell != cell_coords:
-				edit_grid.remove_highlight_cell(_last_hover_cell)
-				edit_grid.add_highlight_cell(cell_coords, Color.YELLOW)
-				_last_hover_cell = cell_coords
-
-
 func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 	var control_node : Control
 	var value = edit_grid.get_data_by_cell(cell)
@@ -80,3 +68,6 @@ func _on_cell_text_edit_visibility_changed():
 			edit_grid.add_data_by_cell(cell, cell_text_edit.text)
 
 
+func _on_edit_grid_cell_hovered(cell):
+	edit_grid.remove_highlight_cell(edit_grid.get_last_hover_cell())
+	edit_grid.add_highlight_cell(cell, Color.YELLOW)

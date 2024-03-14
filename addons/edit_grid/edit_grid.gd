@@ -9,8 +9,12 @@ class_name EditGrid
 extends Control
 
 
+## 单元格被点击
 signal cell_clicked(cell: Vector2i)
+## 单元格被双击
 signal cell_double_clicked(cell: Vector2i)
+## 鼠标经过这个单元格
+signal cell_hovered(cell: Vector2i)
 
 
 @export var panel_border_color : Color = Color.WHITE:
@@ -42,14 +46,25 @@ func _init():
 	queue_redraw()
 
 
+var _last_hover_cell := Vector2i(-1, -1)
 func _gui_input(event):
-	if event is InputEventMouseButton:
+	if event is InputEventMouseMotion:
+		var cell_coords = get_cell_by_mouse_pos()
+		if _last_hover_cell != cell_coords:
+			cell_hovered.emit(cell_coords)
+			_last_hover_cell = cell_coords
+	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			var cell = get_cell_by_mouse_pos()
 			if event.double_click:
 				cell_double_clicked.emit(cell)
 			else:
 				cell_clicked.emit( cell )
+
+
+## 获取上次鼠标悬停位置的单元格
+func get_last_hover_cell() -> Vector2i:
+	return _last_hover_cell
 
 
 func _draw():
