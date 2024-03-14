@@ -19,17 +19,6 @@ var last_control_node : Control
 
 
 func _ready():
-	# 测试数据
-	#var file = "D:\\Downloads\\test_2.xlsx"
-	#var excel = ExcelFile.open_file(file)
-	#var workbook = excel.get_workbook()
-	#var sheet = workbook.get_sheet(0)
-	#var data = sheet.get_table_data()
-	#
-	#edit_grid.queue_redraw_data(sheet.get_table_data())
-	#return
-	
-	
 	edit_grid.queue_redraw_data({
 		1: {
 			2: "hello",
