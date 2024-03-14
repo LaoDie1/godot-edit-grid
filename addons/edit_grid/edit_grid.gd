@@ -9,6 +9,8 @@ class_name EditGrid
 extends Control
 
 
+### 单元格的值发生改变
+#signal cell_value_changed(cell: Vector2i, last_value, current_value)
 ## 单元格被点击
 signal cell_clicked(cell: Vector2i)
 ## 单元格被双击
@@ -38,11 +40,16 @@ var _columns : Array = []
 var _highlight_cell : Dictionary = {}
 var _data : Dictionary = {}
 var _texture_cache : Dictionary = {}
+var _custom_column_width : Dictionary = {}
+var _custom_row_height : Dictionary = {}
 
 
 func _init():
 	clip_contents = true
 	resized.connect(queue_redraw)
+
+
+func _ready():
 	queue_redraw()
 
 
@@ -60,11 +67,6 @@ func _gui_input(event):
 				cell_double_clicked.emit(cell)
 			else:
 				cell_clicked.emit( cell )
-
-
-## 获取上次鼠标悬停位置的单元格
-func get_last_hover_cell() -> Vector2i:
-	return _last_hover_cell
 
 
 func _draw():
@@ -87,31 +89,39 @@ func _draw():
 	_columns.append(p_column)
 	
 	# 绘制数据
-	for cell in _data:
-		var value = _data[cell]
-		if not value is Object:
-			value = str(value)
-			_draw_text(cell, value)
-		elif value is Texture2D:
-			_draw_texture(cell, value)
-		elif value is Image:
-			if not _texture_cache.has(value):
-				_texture_cache[value] = ImageTexture.create_from_image(value)
-			_draw_texture(cell, _texture_cache[value])
-		else:
-			printerr("数据类型错误")
+	for row in _data:
+		if row < _rows.size():
+			var columns_data = _data[row]
+			for column in columns_data:
+				if column < _columns.size():
+					var value = columns_data[column]
+					var cell = Vector2i(column, row)
+					if not value is Object:
+						value = str(value)
+						_draw_text(cell, value)
+					elif value is Texture2D:
+						_draw_texture(cell, value)
+					elif value is Image:
+						if not _texture_cache.has(value):
+							_texture_cache[value] = ImageTexture.create_from_image(value)
+						_draw_texture(cell, _texture_cache[value])
+					else:
+						printerr("数据类型错误")
 	
 	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
 	
 	# 填充鼠标经过的单元格
 	for cell in _highlight_cell:
-		var pos = get_pos_by_cell(cell)
-		var end = get_pos_by_cell(cell + Vector2i(1, 1))
-		draw_rect(Rect2(pos, end - pos), _highlight_cell[cell], false, grid_line_width + 4)
+		if cell.x < _columns.size() and cell.y < _rows.size():
+			var pos = get_pos_by_cell(cell)
+			var end = get_pos_by_cell(cell + Vector2i(1, 1))
+			draw_rect(Rect2(pos, end - pos), _highlight_cell[cell], false, grid_line_width + 4)
 
 
 func _draw_text(cell: Vector2i, text: String):
 	var rect = get_cell_rect(cell)
+	if rect.size.x < 0 or rect.size.y < 0:
+		return
 	var font : Font = get_theme_default_font()
 	var height = font.get_height()
 	draw_string(
@@ -141,6 +151,10 @@ func get_highlight_cells() -> Array:
 	return _highlight_cell.keys()
 
 
+## 获取上次鼠标悬停位置的单元格
+func get_last_hover_cell() -> Vector2i:
+	return _last_hover_cell
+
 ##清除之前的数据，重新绘制表格的数据。数据以 
 ##[codeblock]
 ##data[row][column] = value
@@ -149,18 +163,33 @@ func get_highlight_cells() -> Array:
 ##[br]数据值的类型只能是 [String], [int], [float], [bool] 等基本数据类型或者 [Texture2D], [Image] 对象类型
 func queue_redraw_data(data: Dictionary):
 	_data.clear()
-	for row in data:
-		var columns = data[row] as Dictionary
-		for column in columns:
-			var value = columns[column]
-			_data[Vector2i(column, row)] = value
+	_data.merge(data)
 	queue_redraw()
+
+##使用单元格坐标格式的key的数据进行展示数据。数据格式为
+##[codeblock]
+##data[Vector2i(column, row)] = value
+##[/codeblock]
+func queue_redraw_data_by_cell_key(data: Dictionary):
+	var tmp_data = {}
+	var row : int 
+	var column : int
+	for cell in data:
+		column = cell.x
+		row = cell.y
+		if not tmp_data.has(row):
+			tmp_data[row] = {}
+		tmp_data[row][column] = data[cell]
+	queue_redraw_data(tmp_data)
 
 ## 获取这个单元格的矩形大小
 func get_cell_rect(cell: Vector2i) -> Rect2:
 	var pos = get_pos_by_cell(cell)
 	var end = get_pos_by_cell(cell + Vector2i(1, 1))
 	return Rect2( pos, end - pos )
+	#var rect =  Rect2( pos, end - pos )
+	#assert(rect.size.x > 0 or rect.size.y > 0)
+	#return rect
 
 ## 获取鼠标位置的单元格
 func get_cell_by_mouse_pos() -> Vector2i:
@@ -188,17 +217,25 @@ func get_cell_by_pos(pos: Vector2) -> Vector2i:
 	
 	return Vector2i(column_idx, row_idx)
 
-func get_data(column, row):
+func get_data(column: int, row: int):
 	return _data.get(Vector2i(column, row))
 
 func get_data_by_cell(cell: Vector2i):
-	return _data.get(cell)
+	if _data.has(cell.y):
+		return _data[cell.y].get(cell.x)
+	return null
 
-func add_data(column, row, value):
-	_data[Vector2i(column, row)] = value
+func add_data(column: int, row: int, value):
+	if not _data.has(row):
+		_data[row] = {}
+	#var last_value = _data[row].get(column)
+	#if typeof(last_value) != typeof(value) or last_value != value:
+		#cell_value_changed.emit(Vector2i(column, row), last_value, value)
+	#else:
+		#return
+	_data[row][column] = value
 	queue_redraw()
 
 func add_data_by_cell(cell: Vector2i, value):
-	_data[cell] = value
-	queue_redraw()
+	add_data(cell.x, cell.y, value)
 

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://dr56xjtb3v5cn"]
+[gd_scene load_steps=4 format=3 uid="uid://dr56xjtb3v5cn"]
 
 [ext_resource type="Script" path="res://addons/edit_grid/edit_grid.gd" id="1_2e58s"]
 [ext_resource type="Script" path="res://addons/edit_grid/example/example.gd" id="1_sn8bn"]
+[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/edit_grid/example/edit_box_window/popup_edit_box.tscn" id="3_mn2hw"]
 
 [node name="Example" type="Panel"]
 anchors_preset = 15
@@ -13,21 +14,13 @@ script = ExtResource("1_sn8bn")
 
 [node name="EditGrid" type="Control" parent="."]
 clip_contents = true
-anchors_preset = 0
-offset_left = 230.0
-offset_top = 110.0
-offset_right = 836.0
-offset_bottom = 462.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_2e58s")
-default_height = 80
-
-[node name="CellTextEdit" type="TextEdit" parent="."]
-visible = false
-layout_mode = 0
-offset_left = 54.0
-offset_top = 59.0
-offset_right = 149.0
-offset_bottom = 102.0
 
 [node name="CellTextureRect" type="TextureRect" parent="."]
 visible = false
@@ -35,7 +28,17 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="PopupEditBox" parent="." instance=ExtResource("3_mn2hw")]
+visible = false
+layout_mode = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 247.0
+offset_bottom = 221.0
+box_size = Vector2(183, 157)
+
 [connection signal="cell_clicked" from="EditGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="EditGrid" to="." method="_on_edit_grid_cell_double_clicked"]
 [connection signal="cell_hovered" from="EditGrid" to="." method="_on_edit_grid_cell_hovered"]
-[connection signal="visibility_changed" from="CellTextEdit" to="." method="_on_cell_text_edit_visibility_changed"]
+[connection signal="input_switch_char" from="PopupEditBox" to="." method="_on_popup_edit_box_input_switch_char"]
+[connection signal="popup_hide" from="PopupEditBox" to="." method="_on_popup_edit_box_popup_hide"]

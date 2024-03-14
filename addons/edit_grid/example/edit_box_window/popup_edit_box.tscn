@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://4xts0ha85fja"]
+
+[ext_resource type="Script" path="res://addons/edit_grid/example/edit_box_window/popup_edit_box.gd" id="1_qj0ea"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fv6lu"]
+bg_color = Color(0.172549, 0.172549, 0.172549, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="PopupEditBox" type="MarginContainer"]
+offset_right = 159.0
+offset_bottom = 130.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_qj0ea")
+box_size = Vector2(159, 130)
+
+[node name="edit_box" type="TextEdit" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_fv6lu")
+
+[node name="scale_rect" type="Control" parent="edit_box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 1
+anchor_left = 0.996
+anchor_top = 0.987
+anchor_right = 0.996
+anchor_bottom = 0.987
+offset_left = -0.200012
+offset_top = -0.440002
+offset_right = 15.8
+offset_bottom = 15.56
+mouse_default_cursor_shape = 12
+
+[connection signal="gui_input" from="edit_box" to="." method="_on_edit_box_gui_input"]
+[connection signal="resized" from="edit_box" to="." method="_on_edit_box_resized"]
