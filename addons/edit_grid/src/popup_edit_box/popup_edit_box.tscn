@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://4xts0ha85fja"]
 
-[ext_resource type="Script" path="res://addons/edit_grid/example/edit_box_window/popup_edit_box.gd" id="1_qj0ea"]
+[ext_resource type="Script" path="res://addons/edit_grid/src/popup_edit_box/popup_edit_box.gd" id="1_qj0ea"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fv6lu"]
 bg_color = Color(0.172549, 0.172549, 0.172549, 1)
@@ -16,7 +16,7 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
 script = ExtResource("1_qj0ea")
-box_size = Vector2(159, 130)
+box_size = Vector2(100, 30)
 
 [node name="edit_box" type="TextEdit" parent="."]
 unique_name_in_owner = true

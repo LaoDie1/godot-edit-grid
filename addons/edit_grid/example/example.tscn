@@ -1,44 +1,24 @@
-[gd_scene load_steps=4 format=3 uid="uid://dr56xjtb3v5cn"]
+[gd_scene load_steps=3 format=3 uid="uid://dvuwy12mhrki4"]
 
-[ext_resource type="Script" path="res://addons/edit_grid/edit_grid.gd" id="1_2e58s"]
-[ext_resource type="Script" path="res://addons/edit_grid/example/example.gd" id="1_sn8bn"]
-[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/edit_grid/example/edit_box_window/popup_edit_box.tscn" id="3_mn2hw"]
+[ext_resource type="PackedScene" uid="uid://dr56xjtb3v5cn" path="res://addons/edit_grid/src/edit_grid/edit_grid.tscn" id="1_genf5"]
+[ext_resource type="Script" path="res://addons/edit_grid/example/Example.gd" id="1_xicel"]
 
-[node name="Example" type="Panel"]
+[node name="Example" type="Control"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_sn8bn")
+script = ExtResource("1_xicel")
+metadata/_edit_lock_ = true
 
-[node name="EditGrid" type="Control" parent="."]
-clip_contents = true
+[node name="EditGrid" parent="." instance=ExtResource("1_genf5")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_2e58s")
-
-[node name="CellTextureRect" type="TextureRect" parent="."]
-visible = false
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="PopupEditBox" parent="." instance=ExtResource("3_mn2hw")]
-visible = false
-layout_mode = 0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 247.0
-offset_bottom = 221.0
-box_size = Vector2(183, 157)
-
-[connection signal="cell_clicked" from="EditGrid" to="." method="_on_edit_grid_cell_clicked"]
-[connection signal="cell_double_clicked" from="EditGrid" to="." method="_on_edit_grid_cell_double_clicked"]
-[connection signal="cell_hovered" from="EditGrid" to="." method="_on_edit_grid_cell_hovered"]
-[connection signal="input_switch_char" from="PopupEditBox" to="." method="_on_popup_edit_box_input_switch_char"]
-[connection signal="popup_hide" from="PopupEditBox" to="." method="_on_popup_edit_box_popup_hide"]

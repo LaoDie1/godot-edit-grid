@@ -1,0 +1,97 @@
+[gd_scene load_steps=5 format=3 uid="uid://dr56xjtb3v5cn"]
+
+[ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/edit_grid.gd" id="1_sn8bn"]
+[ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/number_bar.gd" id="2_unwlq"]
+[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/edit_grid/src/popup_edit_box/popup_edit_box.tscn" id="3_mn2hw"]
+[ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/data_grid.gd" id="3_mt44m"]
+
+[node name="EditGrid" type="Panel"]
+offset_right = 500.0
+offset_bottom = 300.0
+script = ExtResource("1_sn8bn")
+
+[node name="GridContainer2" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 2
+
+[node name="Control" type="Control" parent="GridContainer2"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+
+[node name="top_number_bar" type="Panel" parent="GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_unwlq")
+character_format = true
+
+[node name="left_number_bar" type="Panel" parent="GridContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_unwlq")
+draw_direction = 1
+default_width = 40
+
+[node name="GridContainer" type="GridContainer" parent="GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+metadata/_edit_group_ = true
+metadata/_edit_lock_ = true
+
+[node name="DataGrid" type="Control" parent="GridContainer2/GridContainer"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("3_mt44m")
+panel_border_color = Color(1, 1, 1, 0.494118)
+grid_color = Color(1, 1, 1, 0.494118)
+
+[node name="VScrollBar" type="VScrollBar" parent="GridContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+step = 1.0
+page = 5.0
+
+[node name="HScrollBar" type="HScrollBar" parent="GridContainer2/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+step = 1.0
+page = 5.0
+
+[node name="Control" type="Control" parent="GridContainer2/GridContainer"]
+layout_mode = 2
+
+[node name="CellTextureRect" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+stretch_mode = 2
+
+[node name="PopupEditBox" parent="." instance=ExtResource("3_mn2hw")]
+visible = false
+layout_mode = 0
+offset_right = 183.0
+offset_bottom = 157.0
+box_size = Vector2(183, 157)
+
+[connection signal="cell_clicked" from="GridContainer2/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
+[connection signal="cell_double_clicked" from="GridContainer2/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]
+[connection signal="cell_hovered" from="GridContainer2/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_hovered"]
+[connection signal="cell_number_changed" from="GridContainer2/GridContainer/DataGrid" to="." method="_on_data_grid_cell_number_changed"]
+[connection signal="gui_input" from="GridContainer2/GridContainer/DataGrid" to="." method="_on_data_grid_gui_input"]
+[connection signal="value_changed" from="GridContainer2/GridContainer/VScrollBar" to="." method="_value_changed"]
+[connection signal="value_changed" from="GridContainer2/GridContainer/HScrollBar" to="." method="_value_changed"]
+[connection signal="box_size_changed" from="PopupEditBox" to="." method="_on_popup_edit_box_box_size_changed"]
+[connection signal="input_switch_char" from="PopupEditBox" to="." method="_on_popup_edit_box_input_switch_char"]
+[connection signal="popup_hide" from="PopupEditBox" to="." method="_on_popup_edit_box_popup_hide"]

@@ -6,8 +6,7 @@
 # - version: 4.2
 #============================================================
 ## 按下 Alt + Enter 键输入换行
-@tool
-class_name PopupEditBox
+#@tool
 extends Control
 
 
@@ -105,8 +104,6 @@ func popup(rect: Rect2 = Rect2()):
 	_edit_box.set_caret_column( _edit_box.text.length() )
 	self.showed = true
 	
-#	print("[ PopupEditBox ] 弹出窗口")
-	
 	# 取消焦点时隐藏
 	var t = _edit_box.text
 	_edit_box.grab_focus()
@@ -115,13 +112,13 @@ func popup(rect: Rect2 = Rect2()):
 			text = _edit_box.text
 			self.popup_hide.emit(_edit_box.text)
 		_edit_box.visible = false
-#		print("[ PopupEditBox ] 弹窗隐藏")
 	, Object.CONNECT_ONE_SHOT)
 
 
 func _on_edit_box_resized():
 	if _edit_box == null: await ready
-	self.box_size_changed.emit(_edit_box.size)
+	if _edit_box.visible:
+		self.box_size_changed.emit(_edit_box.size)
 
 
 func _on_edit_box_gui_input(event):
