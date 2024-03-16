@@ -1,5 +1,3 @@
-# godot-edit-grid
-
 ![Plugin Logo](icon.svg)
 
 # Godot Edit Grid
