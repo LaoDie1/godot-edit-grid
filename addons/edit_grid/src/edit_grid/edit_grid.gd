@@ -89,7 +89,7 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 			var rect = data_grid.get_cell_rect(cell)
 			popup_edit_box.popup( rect )
 			popup_edit_box.text = str(value)
-			popup_edit_box.set_meta(MetaKey.LAST_CELL, cell)
+			popup_edit_box.set_meta(MetaKey.LAST_CELL, cell + get_cell_offset())
 			control_node = popup_edit_box
 		else:
 			assert(value is Texture2D or value is Image)
@@ -137,7 +137,7 @@ func _on_popup_edit_box_input_switch_char(character):
 
 func _on_data_grid_gui_input(event):
 	if event is InputEventMouseButton:
-		if event.pressed:
+		if not event.pressed:
 			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				(h_scroll_bar 
 					if Input.is_key_pressed(KEY_ALT) 

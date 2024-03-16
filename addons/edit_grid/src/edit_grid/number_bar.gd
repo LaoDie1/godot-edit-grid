@@ -58,8 +58,8 @@ func _draw():
 #  自定义
 #============================================================
 # 转为 26 进制
-func _to_26_base(num: int) -> String:
-	#assert(num > 0)
+static func _to_26_base(num: int) -> String:
+	num -= 1
 	var value : String = ""
 	for i in range(1, 16):
 		var power_value = (26 ** i)

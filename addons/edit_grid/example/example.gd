@@ -36,7 +36,7 @@ func _ready():
 	# 设置列宽
 	var data_grid : DataGrid = edit_grid.get_data_grid()
 	data_grid.set_custom_column_width({
-		2: 200,
+		2: 300,
 	})
 	
 	# 添加数据

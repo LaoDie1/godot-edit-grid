@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dvuwy12mhrki4"]
 
 [ext_resource type="PackedScene" uid="uid://dr56xjtb3v5cn" path="res://addons/edit_grid/src/edit_grid/edit_grid.tscn" id="1_genf5"]
-[ext_resource type="Script" path="res://addons/edit_grid/example/Example.gd" id="1_xicel"]
+[ext_resource type="Script" path="res://addons/edit_grid/example/example.gd" id="1_xicel"]
 
 [node name="Example" type="Control"]
 layout_mode = 3

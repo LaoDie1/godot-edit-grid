@@ -112,8 +112,9 @@ func _to_coords(r: String) -> Vector2i:
 
 
 # 转为 26 进制
-func _to_26_base(num: int) -> String:
-	assert(num > 0)
+static func _to_26_base(num: int) -> String:
+	if num == 0:
+		return "@"
 	var value : String = ""
 	for i in range(1, 16):
 		var power_value = (26 ** i)
