@@ -40,7 +40,7 @@ var _cell_to_box_size_dict : Dictionary = {}
 #============================================================
 #  自定义
 #============================================================
-func get_data(cell: Vector2i):
+func get_cell_value(cell: Vector2i):
 	var coords : Vector2i = data_grid.get_cell_offset() + cell
 	var column = cell.x
 	var row = cell.y
@@ -49,12 +49,10 @@ func get_data(cell: Vector2i):
 		return column_data.get(column, null)
 	return null
 
-
-func set_data(data: Dictionary):
-	if data.hash() != _data.hash():
+func set_grid_data(data: Dictionary):
+	if hash(_data) != hash(data):
 		_data = data
 		data_grid.redraw_by_data(data, Vector2i(0,0))
-
 
 func get_data_grid() -> DataGrid:
 	return data_grid as DataGrid
@@ -64,7 +62,6 @@ func get_cell_offset() -> Vector2i:
 
 
 func _scrolling():
-	self.scrolling.emit()
 	data_grid.redraw(_last_cell_offset)
 	top_number_bar.redraw(
 		_last_cell_offset.x,
@@ -74,7 +71,7 @@ func _scrolling():
 		_last_cell_offset.y,
 		data_grid._custom_row_height
 	)
-	
+	self.scrolling.emit()
 
 
 #============================================================
@@ -82,7 +79,7 @@ func _scrolling():
 #============================================================
 func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 	var control_node : Control # 当前操作的节点
-	var value = get_data(cell + get_cell_offset())
+	var value = get_cell_value(cell + get_cell_offset())
 	if typeof(value) != TYPE_NIL:
 		if not value is Object:
 			#popup_edit_box.visible = true
@@ -102,9 +99,10 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 		return
 	
 	var rect = data_grid.get_cell_rect(cell) as Rect2
+	var real_cell = cell + get_cell_offset()
 	control_node.visible = true
-	control_node.size = (_cell_to_box_size_dict[cell]
-		if _cell_to_box_size_dict.has(cell)
+	control_node.size = (_cell_to_box_size_dict[real_cell]
+		if _cell_to_box_size_dict.has(real_cell)
 		else data_grid.get_cell_rect(cell).size
 	)
 	control_node.position = data_grid.global_position + rect.position
@@ -125,7 +123,7 @@ func _on_popup_edit_box_popup_hide(text):
 	if popup_edit_box and not popup_edit_box.visible:
 		var cell = popup_edit_box.get_meta(MetaKey.LAST_CELL)
 		if typeof(cell) != TYPE_NIL:
-			var last_data = get_data(cell)
+			var last_data = get_cell_value(cell)
 			if typeof(last_data) == TYPE_NIL or str(last_data) != popup_edit_box.text:
 				data_grid.add_data_by_cell(cell, popup_edit_box.text)
 		popup_edit_box.remove_meta(MetaKey.LAST_CELL)
@@ -166,10 +164,10 @@ func _on_popup_edit_box_box_size_changed(box_size):
 
 
 func _on_data_grid_cell_number_changed(column:int, row:int):
-	var max_v = Vector2i()
-	max_v.x  = data_grid.get_max_grid_count().x + column
-	max_v.y  = data_grid.get_max_grid_count().y + row
+	var max_v = Vector2i(
+		data_grid.get_max_cell().x + column,
+		data_grid.get_max_cell().y + row
+	)
 	h_scroll_bar.max_value = max_v.x
 	v_scroll_bar.max_value = max_v.y
-	
 	_scrolling()

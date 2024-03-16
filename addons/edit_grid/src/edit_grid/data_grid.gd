@@ -92,7 +92,7 @@ func _gui_input(event):
 
 
 func _draw():
-	var row_column_number = Vector2i(0, 0)
+	var column_row_number = Vector2i(0, 0)
 	# 列
 	_columns_pos.clear()
 	var p_custom_column_idx : int = _cell_offset.x
@@ -103,7 +103,7 @@ func _draw():
 		p_column += _custom_column_width.get(p_custom_column_idx, default_width)
 		p_custom_column_idx += 1
 	_columns_pos.append(p_column)
-	row_column_number.x = _columns_pos.size()
+	column_row_number.x = _columns_pos.size()
 	
 	# 行
 	_rows_pos.clear()
@@ -115,10 +115,10 @@ func _draw():
 		p_row += _custom_row_height.get(p_custom_row_idx, default_height)
 		p_custom_row_idx += 1
 	_rows_pos.append(p_row)
-	row_column_number.y = _rows_pos.size()
+	column_row_number.y = _rows_pos.size()
 	
-	if _last_cell_number != row_column_number:
-		_last_cell_number = row_column_number
+	if _last_cell_number != column_row_number:
+		_last_cell_number = column_row_number
 		self.cell_number_changed.emit(_last_cell_number.x, _last_cell_number.y)
 	
 	# 绘制数据
@@ -209,7 +209,7 @@ func get_max_cell() -> Vector2i:
 	return _max_cell
 
 ## 获取网格最大数量
-func get_max_grid_count() -> Vector2i:
+func get_max_cell_number() -> Vector2i:
 	return Vector2i(_columns_pos.size(), _rows_pos.size())
 
 ## 获取列宽
