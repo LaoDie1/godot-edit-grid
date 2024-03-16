@@ -9,11 +9,20 @@ extends Panel
 
 
 ## 绘制方向
-@export_enum("Column", "Row") var draw_direction : int = 0
+@export_enum("Column", "Row") var draw_direction : int = 0:
+	set(v):
+		draw_direction = v
+		queue_redraw()
 ## 默认间隔距离
-@export var default_width = 90
+@export var default_width : int = 90:
+	set(v):
+		default_width = v
+		queue_redraw()
 ## 字符的形式展示
-@export var character_format : bool = false
+@export var character_format : bool = false:
+	set(v):
+		character_format = v
+		queue_redraw()
 
 var _offset : int = 0
 var _blank_width : Dictionary = {}
@@ -41,8 +50,8 @@ func _draw():
 		rect.position[draw_direction] = _p_list[i]
 		rect.size[draw_direction] = _p_list[i+1] - _p_list[i]
 		rect.size[abs(draw_direction-1)] = size[abs(draw_direction-1)]
-		#if draw_direction == 1:
-			#rect.position.y -= max(0, rect.size.y - height) / 2
+		if draw_direction == 1:
+			rect.position.y += max(0, rect.size.y - height) / 2 - 2
 		var num_idx = i + _offset 
 		draw_string(
 			font, 

@@ -32,16 +32,13 @@ func _ready():
 	var sheet = workbook.get_sheet(0)
 	var data = sheet.get_table_data()
 	edit_grid.set_grid_data(data)
+	edit_grid.add_data(0, 0, 100)
 	
 	# 设置列宽
-	var data_grid : DataGrid = edit_grid.get_data_grid()
-	data_grid.set_custom_column_width({
+	edit_grid.set_custom_column_width({
 		2: 300,
 	})
-	data_grid.set_custom_row_height({
+	edit_grid.set_custom_row_height({
 		2: 150,
 	})
 	
-	# 添加数据
-	data_grid.add_data(0, 0, 100)
-

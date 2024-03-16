@@ -11,7 +11,7 @@ extends Panel
 
 
 # ## 单元格的值发生改变
-#signal cell_value_changed(cell: Vector2i, last_value, current_value)
+signal cell_value_changed(cell: Vector2i, last_value, current_value)
 ## 发生滚动
 signal scrolling()
 
@@ -49,6 +49,9 @@ func get_cell_value(cell: Vector2i):
 		return column_data.get(column, null)
 	return null
 
+func get_grid_data() -> Dictionary:
+	return _data
+
 func set_grid_data(data: Dictionary):
 	if hash(_data) != hash(data):
 		_data = data
@@ -72,6 +75,29 @@ func _scrolling():
 		data_grid._custom_row_height
 	)
 	self.scrolling.emit()
+
+
+func add_data(column: int, row: int, value):
+	if not _data.has(row):
+		_data[row] = {}
+	var last_value = _data[row].get(column)
+	_data[row][column] = value
+	self.cell_value_changed.emit(Vector2i(column, row), last_value, value)
+	data_grid.redraw_by_data(_data)
+
+
+func remove_data(column: int, row: int) -> bool:
+	if _data.has(row):
+		if _data[row].erase(column):
+			self.cell_value_changed.emit(Vector2i(column, row), _data[row][column], null)
+			return true
+	return false
+
+func set_custom_column_width(data: Dictionary):
+	data_grid.set_custom_column_width(data)
+
+func set_custom_row_height(data: Dictionary):
+	data_grid.set_custom_row_height(data)
 
 
 #============================================================
