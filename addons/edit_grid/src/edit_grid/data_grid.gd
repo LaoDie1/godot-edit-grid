@@ -22,18 +22,6 @@ signal cell_hovered(cell: Vector2i)
 signal cell_number_changed(column:int, row: int)
 
 
-## 绘制的数据对象
-##
-##你可以修改 [code]enabled[/code] 值为 [code]false[/code] 阻止绘制操作，自定义绘制内容
-class DrawData:
-	## 是否允许绘制
-	var enabled : bool = true
-	## 绘制到的单元格位置
-	var cell : Vector2i
-	## 绘制的数据值
-	var value
-
-
 @export var panel_border_color : Color = Color.WHITE:
 	set(v):
 		panel_border_color = v
@@ -46,8 +34,14 @@ class DrawData:
 	set(v):
 		grid_line_width = v
 		queue_redraw()
-@export_range(1,100,1,"or_greater") var default_width : int = 90
-@export_range(1,100,1,"or_greater") var default_height : int = 40
+@export_range(1,100,1,"or_greater") var default_width : int = 90:
+	set(v):
+		default_width = v
+		queue_redraw()
+@export_range(1,100,1,"or_greater") var default_height : int = 40:
+	set(v):
+		default_height = v
+		queue_redraw()
 
 
 var _rows_pos : Array = [] # 每个行所在的像素位置
@@ -117,11 +111,12 @@ func _draw():
 	_rows_pos.append(p_row)
 	column_row_number.y = _rows_pos.size()
 	
+	# 显示的行列数发生改变
 	if _last_cell_number != column_row_number:
 		_last_cell_number = column_row_number
 		self.cell_number_changed.emit(_last_cell_number.x, _last_cell_number.y)
 	
-	# 绘制数据
+	# 绘制每个网格上的数据
 	var data_left_top_cell : Vector2i = Vector2i(0, 0)
 	for row in _rows_pos.size()-1:
 		data_left_top_cell.y = row + _cell_offset.y
@@ -134,18 +129,8 @@ func _draw():
 					draw_data.cell = Vector2i(column, row)
 					draw_data.value = columns_data[data_left_top_cell.x]
 					self.will_draw.emit(draw_data)
-					if draw_data.enabled:
-						if not draw_data.value is Object:
-							draw_data.value = str(draw_data.value)
-							_draw_text(draw_data.cell, draw_data.value)
-						elif draw_data.value is Texture2D:
-							_draw_texture(draw_data.cell, draw_data.value)
-						elif draw_data.value is Image:
-							if not _texture_cache.has(draw_data.value):
-								_texture_cache[draw_data.value] = ImageTexture.create_from_image(draw_data.value)
-							_draw_texture(draw_data.cell, _texture_cache[draw_data.value])
-						else:
-							printerr("数据类型错误")
+					# 进行绘制
+					_draw_data(draw_data)
 	
 	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
 	
@@ -159,6 +144,21 @@ func _draw():
 #============================================================
 #  自定义
 #============================================================
+func _draw_data(draw_data: DrawData):
+	if draw_data.enabled:
+		if not draw_data.value is Object:
+			draw_data.value = str(draw_data.value)
+			_draw_text(draw_data.cell, draw_data.value)
+		elif draw_data.value is Texture2D:
+			_draw_texture(draw_data.cell, draw_data.value)
+		elif draw_data.value is Image:
+			if not _texture_cache.has(draw_data.value):
+				_texture_cache[draw_data.value] = ImageTexture.create_from_image(draw_data.value)
+			_draw_texture(draw_data.cell, _texture_cache[draw_data.value])
+		else:
+			printerr("数据类型错误")
+
+
 func _draw_text(cell: Vector2i, text: String):
 	var rect = get_cell_rect(cell)
 	if rect.size.x < 0 or rect.size.y < 0:
@@ -181,6 +181,7 @@ func _draw_texture(cell: Vector2i, texture: Texture2D):
 	rect.size.y = min(rect.size.y, image_size.y)
 	rect.size -= Vector2(1, 1)
 	draw_texture_rect(texture, rect, true)
+
 
 func get_cell_offset() -> Vector2i:
 	return _cell_offset

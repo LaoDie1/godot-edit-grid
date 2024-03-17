@@ -10,7 +10,7 @@ class_name EditGrid
 extends Panel
 
 
-# ## 单元格的值发生改变
+## 单元格的值发生改变
 signal cell_value_changed(cell: Vector2i, last_value, current_value)
 ## 发生滚动
 signal scrolling()
@@ -108,7 +108,6 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 	var value = get_cell_value(cell + get_cell_offset())
 	if typeof(value) != TYPE_NIL:
 		if not value is Object:
-			#popup_edit_box.visible = true
 			var rect = data_grid.get_cell_rect(cell)
 			popup_edit_box.popup( rect )
 			popup_edit_box.text = str(value)
@@ -121,9 +120,10 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 			cell_texture_rect.texture = value
 			control_node = cell_texture_rect
 	else:
-		print_debug(cell, " 数据为空。可在这里进行编辑操作功能")
+		print_debug(cell, " 数据为空。在这里进行编写操作功能")
 		return
 	
+	# 设置显示到的位置
 	var rect = data_grid.get_cell_rect(cell) as Rect2
 	var real_cell = cell + get_cell_offset()
 	control_node.visible = true

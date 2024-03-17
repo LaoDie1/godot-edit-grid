@@ -11,9 +11,11 @@ config_version=5
 [application]
 
 config/name="godot-edit-grid"
+run/main_scene="res://addons/edit_grid/example/example.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
+run/low_processor_mode=true
 config/icon="res://icon.svg"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/edit_grid/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
+enabled=PackedStringArray("res://addons/bottom_file_manage/plugin.cfg", "res://addons/edit_grid/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
