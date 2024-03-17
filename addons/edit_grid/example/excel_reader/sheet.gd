@@ -112,20 +112,30 @@ func _to_coords(r: String) -> Vector2i:
 
 
 # 转为 26 进制
-static func _to_26_base(num: int) -> String:
-	if num == 0:
+static func _to_26_base(dividend: int) -> String:
+	const BASE = 26
+	if dividend == 0:
 		return "@"
-	var value : String = ""
-	for i in range(1, 16):
-		var power_value = (26 ** i)
-		var result : int = num / power_value
-		if result > 0:
-			value += char(result + 64)
+	var result = []
+	var quotient : int = dividend
+	var remainder : int
+	while quotient > 0:
+		quotient = dividend / BASE
+		remainder = dividend % BASE
+		if remainder > 0:
+			result.append(
+				char( (remainder if remainder > 0 else BASE) + 64 )
+			)
 		else:
-			value += char(num + 65)
+			result.append(char(BASE + 64))
+			quotient -= 1
+			if quotient > 0:
+				result.append(char(quotient + 64))
 			break
-		num -= power_value
-	return value
+		dividend = quotient
+	
+	result.reverse()
+	return "".join(result)
 
 
 func _get_row_node_dict() -> Dictionary:

@@ -41,4 +41,3 @@ func _ready():
 	edit_grid.set_custom_row_height({
 		2: 150,
 	})
-	

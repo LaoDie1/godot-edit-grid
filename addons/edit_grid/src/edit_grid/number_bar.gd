@@ -56,7 +56,7 @@ func _draw():
 		draw_string(
 			font, 
 			rect.position + Vector2(0, height), 
-			str(num_idx) if not character_format else _to_26_base(num_idx), 
+			str(num_idx) if not character_format else to_26_base(num_idx), 
 			HORIZONTAL_ALIGNMENT_CENTER, 
 			rect.size.x, 
 			get_theme_default_font_size()
@@ -67,19 +67,30 @@ func _draw():
 #  自定义
 #============================================================
 # 转为 26 进制
-static func _to_26_base(num: int) -> String:
-	num -= 1
-	var value : String = ""
-	for i in range(1, 16):
-		var power_value = (26 ** i)
-		var result : int = num / power_value
-		if result > 0:
-			value += char(result + 64)
+static func to_26_base(dividend: int) -> String:
+	const BASE = 26
+	if dividend == 0:
+		return "@"
+	var result = []
+	var quotient : int = dividend
+	var remainder : int
+	while quotient > 0:
+		quotient = dividend / BASE
+		remainder = dividend % BASE
+		if remainder > 0:
+			result.append(
+				char( (remainder if remainder > 0 else BASE) + 64 )
+			)
 		else:
-			value += char(num + 65)
+			result.append(char(BASE + 64))
+			quotient -= 1
+			if quotient > 0:
+				result.append(char(quotient + 64))
 			break
-		num -= power_value
-	return value
+		dividend = quotient
+	
+	result.reverse()
+	return "".join(result)
 
 
 ## 每个序号的空白宽度

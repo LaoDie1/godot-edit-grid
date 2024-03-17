@@ -30,7 +30,7 @@ const MetaKey = {
 @onready var left_number_bar = %left_number_bar
 
 
-var _data : Dictionary = {}
+var _grid_data : Dictionary = {}
 var _last_control_node : Control
 var _last_cell_offset : Vector2i = Vector2i(0,0)
 var _cell_to_box_size_dict : Dictionary = {}
@@ -40,31 +40,10 @@ var _cell_to_box_size_dict : Dictionary = {}
 #============================================================
 #  自定义
 #============================================================
-func get_cell_value(cell: Vector2i):
-	var coords : Vector2i = data_grid.get_cell_offset() + cell
-	var column = cell.x
-	var row = cell.y
-	if _data.has(row):
-		var column_data : Dictionary = _data[row]
-		return column_data.get(column, null)
-	return null
-
-func get_grid_data() -> Dictionary:
-	return _data
-
-func set_grid_data(data: Dictionary):
-	if hash(_data) != hash(data):
-		_data = data
-		data_grid.redraw_by_data(data, Vector2i(0,0))
-
-func get_data_grid() -> DataGrid:
-	return data_grid as DataGrid
-
-func get_cell_offset() -> Vector2i:
-	return Vector2i(h_scroll_bar.value, v_scroll_bar.value)
-
-
 func _scrolling():
+	h_scroll_bar.max_value = h_scroll_bar.value + 10
+	v_scroll_bar.max_value = v_scroll_bar.value + 10
+	
 	data_grid.redraw(_last_cell_offset)
 	top_number_bar.redraw(
 		_last_cell_offset.x,
@@ -77,25 +56,87 @@ func _scrolling():
 	self.scrolling.emit()
 
 
-func add_data(column: int, row: int, value):
-	if not _data.has(row):
-		_data[row] = {}
-	var last_value = _data[row].get(column)
-	_data[row][column] = value
-	self.cell_value_changed.emit(Vector2i(column, row), last_value, value)
-	data_grid.redraw_by_data(_data)
+func get_cell_value(cell: Vector2i):
+	var coords : Vector2i = data_grid.get_cell_offset() + cell
+	var column = cell.x
+	var row = cell.y
+	if _grid_data.has(row):
+		var column_data : Dictionary = _grid_data[row]
+		return column_data.get(column, null)
+	return null
 
+func get_grid_data() -> Dictionary:
+	return _grid_data
+
+
+## 数据格式详见：[method DataGrid.redraw_by_data] 方法中的描述
+func set_grid_data(data: Dictionary):
+	if hash(_grid_data) != hash(data):
+		_grid_data = data
+		data_grid.redraw_by_data(data, Vector2i(0,0))
+
+
+##使用单元格坐标格式的key的数据进行展示数据。数据格式为
+##[codeblock]
+##{
+##   Vector2i(column, row): value,
+##   Vector2i(column, row): value,
+##   Vector2i(column, row): value,
+##}
+##[/codeblock]
+func set_grid_datav(data: Dictionary) -> void:
+	var tmp_data = {}
+	var row : int 
+	var column : int
+	for cell in data:
+		column = cell.x
+		row = cell.y
+		if not tmp_data.has(row):
+			tmp_data[row] = {}
+		tmp_data[row][column] = data[cell]
+	set_grid_data(tmp_data)
+
+func get_data_grid() -> DataGrid:
+	return data_grid as DataGrid
+
+func get_cell_offset() -> Vector2i:
+	return Vector2i(h_scroll_bar.value, v_scroll_bar.value)
+
+
+func add_data(column: int, row: int, value):
+	if not _grid_data.has(row):
+		_grid_data[row] = {}
+	var last_value = _grid_data[row].get(column)
+	_grid_data[row][column] = value
+	self.cell_value_changed.emit(Vector2i(column, row), last_value, value)
+	data_grid.redraw_by_data(_grid_data)
+
+func add_datav(cell: Vector2i, value):
+	add_data(cell.x, cell.y, value)
 
 func remove_data(column: int, row: int) -> bool:
-	if _data.has(row):
-		if _data[row].erase(column):
-			self.cell_value_changed.emit(Vector2i(column, row), _data[row][column], null)
+	if _grid_data.has(row):
+		if _grid_data[row].erase(column):
+			self.cell_value_changed.emit(Vector2i(column, row), _grid_data[row][column], null)
 			return true
 	return false
 
+func remove_datav(cell: Vector2i) -> bool:
+	return remove_data(cell.x, cell.y)
+
+##设置自定义列宽。数据格式:
+##{
+##  column: width,
+##  column: width,
+##}
 func set_custom_column_width(data: Dictionary):
 	data_grid.set_custom_column_width(data)
 
+##设置自定义行高。数据格式:
+##{
+##  row: height,
+##  row: height,
+##}
 func set_custom_row_height(data: Dictionary):
 	data_grid.set_custom_row_height(data)
 
@@ -190,10 +231,10 @@ func _on_popup_edit_box_box_size_changed(box_size):
 
 
 func _on_data_grid_cell_number_changed(column:int, row:int):
-	var max_v = Vector2i(
-		data_grid.get_max_cell().x + column,
-		data_grid.get_max_cell().y + row
-	)
-	h_scroll_bar.max_value = max_v.x
-	v_scroll_bar.max_value = max_v.y
+	#var max_v = Vector2i(
+		#data_grid.get_max_cell().x + column,
+		#data_grid.get_max_cell().y + row
+	#)
+	#h_scroll_bar.max_value = max_v.x
+	#v_scroll_bar.max_value = max_v.y
 	_scrolling()

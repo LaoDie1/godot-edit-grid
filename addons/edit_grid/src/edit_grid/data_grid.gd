@@ -231,7 +231,17 @@ func redraw(cell_offset: Vector2i = Vector2i(-1, -1)):
 
 ##清除之前的数据，重新绘制表格的数据。数据以 
 ##[codeblock]
-##data[row][column] = value
+##{
+##   row: {
+##     column: value,
+##     column: value,
+##     column: value,
+##   },
+##   row: {
+##     column: value,
+##     column: value,
+##   },
+##}
 ##[/codeblock]
 ##格式传入这个参数。
 ##[br]数据值的类型只能是 [String], [int], [float], [bool] 等基本数据类型或者 [Texture2D], [Image] 对象类型
@@ -251,22 +261,6 @@ func redraw_by_data(
 		queue_redraw()
 	redraw(cell_offset)
 
-
-##使用单元格坐标格式的key的数据进行展示数据。数据格式为
-##[codeblock]
-##data[Vector2i(column, row)] = value
-##[/codeblock]
-func redraw_by_data_by_cell_key(data: Dictionary) -> void:
-	var tmp_data = {}
-	var row : int 
-	var column : int
-	for cell in data:
-		column = cell.x
-		row = cell.y
-		if not tmp_data.has(row):
-			tmp_data[row] = {}
-		tmp_data[row][column] = data[cell]
-	redraw_by_data(tmp_data)
 
 ## 获取这个单元格的矩形大小
 func get_cell_rect(cell: Vector2i) -> Rect2:
@@ -310,7 +304,7 @@ func is_in_view(cell: Vector2i) -> bool:
 #func get_data(column: int, row: int):
 	#return _data.get(Vector2i(column, row))
 #
-#func get_data_by_cell(cell: Vector2i):
+#func get_datav(cell: Vector2i):
 	#if _data.has(cell.y):
 		#return _data[cell.y].get(cell.x)
 	#return null
