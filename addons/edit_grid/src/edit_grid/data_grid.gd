@@ -252,7 +252,7 @@ func redraw_by_data(
 	queue_redraw()
 
 
-## 获取这个单元格的矩形大小
+## 获取这个单元格的矩形大小。这个 cell 不能是偏移的值
 func get_cell_rect(cell: Vector2i) -> Rect2:
 	var pos = get_pos_by_cell(cell)
 	var end = get_pos_by_cell(cell + Vector2i(1, 1))

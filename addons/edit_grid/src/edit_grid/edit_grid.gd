@@ -241,8 +241,8 @@ func _on_data_grid_gui_input(event):
 		else:
 			if event.button_index == MOUSE_BUTTON_LEFT:
 				_last_clicked_pos = get_global_mouse_position()
-				_last_clicked_cell = data_grid.get_cell_by_mouse_pos()
-				_last_clicked_cell_rect = data_grid.get_cell_rect( _last_clicked_cell )
+				_last_clicked_cell = data_grid.get_cell_by_mouse_pos() + get_cell_offset()
+				_last_clicked_cell_rect = data_grid.get_cell_rect( data_grid.get_cell_by_mouse_pos() )
 		
 	elif event is InputEventMouseMotion:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
