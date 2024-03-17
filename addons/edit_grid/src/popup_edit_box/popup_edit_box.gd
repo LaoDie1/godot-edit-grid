@@ -6,7 +6,7 @@
 # - version: 4.2
 #============================================================
 ## 按下 Alt + Enter 键输入换行
-#@tool
+@tool
 extends Control
 
 
@@ -67,9 +67,6 @@ func get_text() -> String:
 #   内置
 #============================================================
 func _ready():
-	if Engine.is_editor_hint():
-		return
-	
 	_edit_box.position = Vector2(0,0)
 	
 	_scale_rect.gui_input.connect(func(event):
@@ -91,10 +88,10 @@ func _ready():
 #  自定义
 #============================================================
 func popup(rect: Rect2 = Rect2()):
-	if _edit_box == null: await ready
+	if _edit_box == null: 
+		await ready
 	
-	if rect.position != Vector2():
-		_edit_box.global_position = rect.position
+	self.global_position = rect.position
 	if rect.size != Vector2():
 		_edit_box.size = rect.size
 	

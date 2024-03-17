@@ -8,6 +8,7 @@
 ## 数据展示表格
 ##
 ##通过调用 [method redraw_by_data] 方法向表格中绘制数据
+@tool
 class_name DataGrid
 extends Control
 
@@ -239,17 +240,16 @@ func redraw_by_data(
 	data: Dictionary, 
 	cell_offset: Vector2i = Vector2i(-1,-1),
 ) -> void:
-	if _data.hash() != data.hash():
-		_data.clear()
-		_data.merge(data)
-		for row in _data:
+	if _data != data:
+		_data = data
+		for row in data:
 			if _max_cell.y < row:
 				_max_cell.y = max(_max_cell.y, row)
-			for column in _data[row]:
+			for column in data[row]:
 				if _max_cell.x < column:
 					_max_cell.x = max(_max_cell.x, column)
-		queue_redraw()
 	redraw(cell_offset)
+	queue_redraw()
 
 
 ## 获取这个单元格的矩形大小
@@ -322,28 +322,28 @@ func add_custom_row_height(row: int, height: float):
 	queue_redraw()
 
 
-## 添加要展示的数据
-func add_data(column: int, row: int, value) -> void:
-	if (value is String and value == "") or typeof(value) == TYPE_NIL:
-		remove_data(column, row)
-		return
-	if not _data.has(row):
-		_data[row] = {}
-	_data[row][column] = value
-	queue_redraw()
-
-func add_data_by_cell(cell: Vector2i, value) -> void:
-	add_data(cell.x, cell.y, value)
-
-
-func remove_data(column: int, row: int) -> bool:
-	if _data.has(row) and _data[row].erase(column):
-		if _data[row].is_empty():
-			_data.erase(row)
-		queue_redraw()
-		return true
-	return false
-
-func remove_data_by_cell(cell: Vector2i) -> bool:
-	return remove_data(cell.x, cell.y)
-
+# ## 添加要展示的数据
+#func add_data(column: int, row: int, value) -> void:
+	#if (value is String and value == "") or typeof(value) == TYPE_NIL:
+		#remove_data(column, row)
+		#return
+	#if not _data.has(row):
+		#_data[row] = {}
+	#_data[row][column] = value
+	#queue_redraw()
+#
+#func add_datav(cell: Vector2i, value) -> void:
+	#add_data(cell.x, cell.y, value)
+#
+# ## 移除展示的数据
+#func remove_data(column: int, row: int) -> bool:
+	#if _data.has(row) and _data[row].erase(column):
+		#if _data[row].is_empty():
+			#_data.erase(row)
+		#queue_redraw()
+		#return true
+	#return false
+#
+#func remove_datav(cell: Vector2i) -> bool:
+	#return remove_data(cell.x, cell.y)
+#

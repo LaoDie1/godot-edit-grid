@@ -6,8 +6,13 @@
 [ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/data_grid.gd" id="3_mt44m"]
 
 [node name="EditGrid" type="Panel"]
-offset_right = 500.0
-offset_bottom = 300.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_sn8bn")
 
 [node name="GridContainer" type="GridContainer" parent="."]
@@ -27,12 +32,14 @@ layout_mode = 2
 
 [node name="top_number_bar" type="Panel" parent="GridContainer"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
 character_format = true
 
 [node name="left_number_bar" type="Panel" parent="GridContainer"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
 draw_direction = 1
@@ -59,12 +66,14 @@ grid_color = Color(1, 1, 1, 0.494118)
 [node name="VScrollBar" type="VScrollBar" parent="GridContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 10.0
 step = 1.0
 page = 5.0
 
 [node name="HScrollBar" type="HScrollBar" parent="GridContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 10.0
 step = 1.0
 page = 5.0
 
