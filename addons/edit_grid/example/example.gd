@@ -35,9 +35,9 @@ func _ready():
 	edit_grid.add_data(0, 0, 100)
 	
 	# 设置列宽
-	edit_grid.set_custom_column_width({
-		2: 300,
-	})
-	edit_grid.set_custom_row_height({
-		2: 150,
-	})
+	#edit_grid.set_custom_column_width({
+		#2: 300,
+	#})
+	#edit_grid.set_custom_row_height({
+		#2: 150,
+	#})

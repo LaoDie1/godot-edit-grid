@@ -6,6 +6,9 @@
 # - version: 4.2
 #============================================================
 ## 编辑数据表格
+##
+##双击单元格进行编辑。通过 [method set_data] 方法或者 [method add_data] 方法向表格中添加数据。
+##
 class_name EditGrid
 extends Panel
 
@@ -34,16 +37,20 @@ var _grid_data : Dictionary = {}
 var _last_control_node : Control
 var _last_cell_offset : Vector2i = Vector2i(0,0)
 var _cell_to_box_size_dict : Dictionary = {}
-
+var _last_clicked_pos : Vector2 = Vector2()
+var _last_clicked_cell : Vector2i = Vector2i()
+var _last_clicked_cell_rect : Rect2 = Rect2()
 
 
 #============================================================
 #  自定义
 #============================================================
 func _scrolling():
+	# 表格正在滚动
 	h_scroll_bar.max_value = h_scroll_bar.value + 10
 	v_scroll_bar.max_value = v_scroll_bar.value + 10
 	
+	popup_edit_box.hide()
 	data_grid.redraw(_last_cell_offset)
 	top_number_bar.redraw(
 		_last_cell_offset.x,
@@ -56,6 +63,7 @@ func _scrolling():
 	self.scrolling.emit()
 
 
+## 获取这个单元格上的数据
 func get_cell_value(cell: Vector2i):
 	var coords : Vector2i = data_grid.get_cell_offset() + cell
 	var column = cell.x
@@ -65,6 +73,8 @@ func get_cell_value(cell: Vector2i):
 		return column_data.get(column, null)
 	return null
 
+
+## 获取当前表格数据
 func get_grid_data() -> Dictionary:
 	return _grid_data
 
@@ -99,6 +109,7 @@ func set_grid_datav(data: Dictionary) -> void:
 func get_data_grid() -> DataGrid:
 	return data_grid as DataGrid
 
+## 单元格偏移值。也就是滚动条滚动的值
 func get_cell_offset() -> Vector2i:
 	return Vector2i(h_scroll_bar.value, v_scroll_bar.value)
 
@@ -181,11 +192,6 @@ func _on_edit_grid_cell_clicked(cell):
 		_last_control_node.visible = false
 
 
-func _on_edit_grid_cell_hovered(cell):
-	data_grid.remove_highlight_cell(data_grid.get_last_hover_cell())
-	data_grid.add_highlight_cell(cell, Color.YELLOW)
-
-
 func _on_popup_edit_box_popup_hide(text):
 	if popup_edit_box and not popup_edit_box.visible:
 		var cell = popup_edit_box.get_meta(MetaKey.LAST_CELL)
@@ -212,6 +218,42 @@ func _on_data_grid_gui_input(event):
 				(h_scroll_bar 
 					if Input.is_key_pressed(KEY_ALT) 
 					else v_scroll_bar).value -= 1
+		else:
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				_last_clicked_pos = get_global_mouse_position()
+				_last_clicked_cell = data_grid.get_cell_by_mouse_pos()
+				_last_clicked_cell_rect = data_grid.get_cell_rect( _last_clicked_cell )
+		
+	elif event is InputEventMouseMotion:
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			var cell = data_grid.get_last_hover_cell()
+			var rect = data_grid.get_cell_rect(cell)
+			var mouse_pos = data_grid.get_local_mouse_position()
+			var diff = (rect.end - mouse_pos).abs()
+			const MAX_DIST = 8
+			if diff.x < MAX_DIST:
+				data_grid.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+			elif diff.y < MAX_DIST:
+				data_grid.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+			else:
+				data_grid.mouse_default_cursor_shape = Control.CURSOR_ARROW
+			
+		else:
+			
+			if data_grid.mouse_default_cursor_shape != Control.CURSOR_ARROW:
+				# 进行拖拽自定义行高列宽
+				match data_grid.mouse_default_cursor_shape:
+					Control.CURSOR_HSIZE:
+						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
+						var column_width = _last_clicked_cell_rect.size.x + mouse_offset.x
+						data_grid.add_custom_column_width(_last_clicked_cell.x, column_width)
+						
+					Control.CURSOR_VSIZE:
+						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
+						var row_height = _last_clicked_cell_rect.size.y + mouse_offset.y
+						data_grid.add_custom_row_height(_last_clicked_cell.y, row_height)
+						
+		
 
 
 func _value_changed(value):
@@ -238,3 +280,4 @@ func _on_data_grid_cell_number_changed(column:int, row:int):
 	#h_scroll_bar.max_value = max_v.x
 	#v_scroll_bar.max_value = max_v.y
 	_scrolling()
+

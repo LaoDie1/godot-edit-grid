@@ -6,12 +6,13 @@
 # - version: 4.2
 #============================================================
 ## 数据展示表格
+##
+##通过调用 [method redraw_by_data] 方法向表格中绘制数据
 class_name DataGrid
 extends Control
 
 
-## 将要绘制数据
-signal will_draw(data: DrawData)
+
 ## 单元格被点击
 signal cell_clicked(cell: Vector2i)
 ## 单元格被双击
@@ -20,6 +21,12 @@ signal cell_double_clicked(cell: Vector2i)
 signal cell_hovered(cell: Vector2i)
 ## 网格数量大小发生改变
 signal cell_number_changed(column:int, row: int)
+## 准备绘制
+signal ready_draw()
+## 将要绘制数据
+signal will_draw(data: DrawData)
+## 绘制已完成
+signal draw_finished()
 
 
 @export var panel_border_color : Color = Color.WHITE:
@@ -47,7 +54,6 @@ signal cell_number_changed(column:int, row: int)
 var _rows_pos : Array = [] # 每个行所在的像素位置
 var _columns_pos : Array = [] # 每个列所在的像素位置
 var _last_cell_number : Vector2i = Vector2i(0, 0) # 单元格数量发生改变
-var _highlight_cell : Dictionary = {} # 高亮的单元格
 var _data : Dictionary = {} # 绘制的数据
 var _texture_cache : Dictionary = {} # 显示的图片的缓存
 var _max_cell : Vector2i = Vector2i(0, 0) # 最大行列位置
@@ -116,6 +122,8 @@ func _draw():
 		_last_cell_number = column_row_number
 		self.cell_number_changed.emit(_last_cell_number.x, _last_cell_number.y)
 	
+	self.ready_draw.emit()
+	
 	# 绘制每个网格上的数据
 	var data_left_top_cell : Vector2i = Vector2i(0, 0)
 	for row in _rows_pos.size()-1:
@@ -132,13 +140,9 @@ func _draw():
 					# 进行绘制
 					_draw_data(draw_data)
 	
-	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
+	self.draw_finished.emit()
 	
-	# 填充鼠标经过的单元格
-	for cell in _highlight_cell:
-		var pos = get_pos_by_cell(cell)
-		var end = get_pos_by_cell(cell + Vector2i(1, 1))
-		draw_rect(Rect2(pos, end - pos), _highlight_cell[cell], false, grid_line_width + 4)
+	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
 
 
 #============================================================
@@ -183,25 +187,11 @@ func _draw_texture(cell: Vector2i, texture: Texture2D):
 	draw_texture_rect(texture, rect, true)
 
 
+## 展示的数据偏移位置
 func get_cell_offset() -> Vector2i:
 	return _cell_offset
 
-func is_highlight_cell(cell: Vector2i) -> bool:
-	return _highlight_cell.has(cell)
-
-func add_highlight_cell(cell: Vector2i, color: Color):
-	if is_in_view(cell) and _highlight_cell.has(cell):
-		_highlight_cell[cell] = color
-		queue_redraw()
-
-func remove_highlight_cell(cell: Vector2i):
-	if _highlight_cell.erase(cell):
-		queue_redraw()
-
-func get_highlight_cells() -> Array:
-	return _highlight_cell.keys()
-
-## 获取上次鼠标悬停位置的单元格
+## 获取上次鼠标悬停位置的单元格。这个是没有偏移值的
 func get_last_hover_cell() -> Vector2i:
 	return _last_hover_cell
 
@@ -322,6 +312,15 @@ func set_custom_row_height(data: Dictionary):
 		_custom_row_height.clear()
 		_custom_row_height.merge(data)
 		queue_redraw()
+
+func add_custom_column_width(column: int, width: float):
+	_custom_column_width[column] = max(16, width)
+	queue_redraw()
+
+func add_custom_row_height(row: int, height: float):
+	_custom_row_height[row] = max(16, height)
+	queue_redraw()
+
 
 ## 添加要展示的数据
 func add_data(column: int, row: int, value) -> void:

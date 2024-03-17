@@ -87,8 +87,8 @@ box_size = Vector2(183, 157)
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]
-[connection signal="cell_hovered" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_hovered"]
 [connection signal="cell_number_changed" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_number_changed"]
+[connection signal="draw_finished" from="GridContainer/GridContainer/DataGrid" to="." method="_scrolling"]
 [connection signal="gui_input" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_gui_input"]
 [connection signal="value_changed" from="GridContainer/GridContainer/VScrollBar" to="." method="_value_changed"]
 [connection signal="value_changed" from="GridContainer/GridContainer/HScrollBar" to="." method="_value_changed"]
