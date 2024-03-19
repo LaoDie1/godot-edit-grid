@@ -1,13 +1,15 @@
 #============================================================
-#    Menu List
+#    simple Menu
 #============================================================
 # - author: zhangxuetu
 # - datetime: 2022-11-27 01:01:10
-# - version: 4.0
+# - version: 4.2.1
 #============================================================
-## 菜单列表
+## 简单菜单
+##
+##通过调用 [method init_menu] 方法进行初始化菜单项。
 @tool
-class_name MenuList
+class_name SimpleMenu
 extends MenuBar
 
 
@@ -170,6 +172,7 @@ func init_menu(data: Dictionary):
 ##{
 ##    "/File/Open": {"keycode": KEY_O, "ctrl": true},
 ##    "/File/Save": {"keycode": KEY_S, "ctrl": true},
+##    "/File/Export/JSON": {"keycode": KEY_E, "shift": true, "ctrl": true},
 ##}
 ##[/codeblock]
 func init_shortcut(data_list: Dictionary):
@@ -204,7 +207,7 @@ func add_menu(menu_data, parent_menu_path: StringName):
 		elif menu_data is String or menu_data is StringName:
 			# 添加菜单
 			if not _menu_path_to_popup_menu_map.has(parent_menu_path):
-				create_menu(parent_menu_path, null)
+				_create_menu(parent_menu_path, null)
 			parent_popup_menu = get_menu(parent_menu_path)
 			# 不是 Array 和 Dictionary 类型时，只能是 String 类型了
 			var menu_name := StringName(menu_data)
@@ -282,11 +285,11 @@ func clear_menu(menu_path: StringName) -> bool:
 	return false
 
 
-## 创建菜单
-##[br]
-##[br][code]menu_path[/code]  菜单路径
-##[br][code]parent_menu[/code]  父级菜单
-func create_menu(menu_path: StringName, parent_menu: PopupMenu):
+# 创建菜单
+#[br]
+#[br][code]menu_path[/code]  菜单路径
+#[br][code]parent_menu[/code]  父级菜单
+func _create_menu(menu_path: StringName, parent_menu: PopupMenu):
 	# 切分菜单名
 	var parent_menu_names := menu_path.split("/")
 	# 因为切分后 0 索引都是空字符串，所以移除

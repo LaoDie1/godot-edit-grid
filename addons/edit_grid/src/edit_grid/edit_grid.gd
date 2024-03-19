@@ -17,8 +17,10 @@ extends Panel
 
 ## 单元格的值发生改变
 signal cell_value_changed(cell: Vector2i, last_value, current_value)
-## 发生滚动
+## 网格发生滚动
 signal scrolling()
+## 行高列宽发生改变
+signal column_width_row_height_changed()
 
 
 const MetaKey = {
@@ -35,13 +37,14 @@ const MetaKey = {
 @onready var left_number_bar = %left_number_bar
 
 
-var _grid_data : Dictionary = {}
 var _last_control_node : Control
-var _last_cell_offset : Vector2i = Vector2i(0,0)
-var _cell_to_box_size_dict : Dictionary = {}
 var _last_clicked_pos : Vector2 = Vector2()
 var _last_clicked_cell : Vector2i = Vector2i()
 var _last_clicked_cell_rect : Rect2 = Rect2()
+
+var _grid_data : Dictionary = {}
+var _last_cell_offset : Vector2i = Vector2i(0,0)
+var _cell_to_box_size_dict : Dictionary = {}
 
 
 #============================================================
@@ -63,6 +66,30 @@ func _scrolling():
 		data_grid._custom_row_height
 	)
 	self.scrolling.emit()
+
+
+## 获取配置数据
+func get_config_data() -> Dictionary:
+	var data : Dictionary = {}
+	data["_cell_to_box_size_dict"] = _cell_to_box_size_dict
+	data["_last_cell_offset"] = _last_cell_offset
+	
+	data["__data_grid"] = {
+		"_custom_column_width": data_grid._custom_column_width,
+		"_custom_row_height": data_grid._custom_row_height,
+	}
+	return data
+
+
+## 设置配置数据
+func set_config_data(data: Dictionary):
+	for key in data:
+		if key in self:
+			set(key, data[key])
+	var data_grid_data : Dictionary = data["__data_grid"]
+	for key in data_grid_data:
+		if key in data_grid:
+			data_grid.set(key, data_grid_data[key])
 
 
 ## 获取这个单元格上的数据
@@ -160,8 +187,14 @@ func set_custom_row_height(data: Dictionary):
 func add_custom_column_width(column: int, width: float):
 	data_grid.add_custom_column_width(column, width)
 
+func clear_custom_column_width():
+	data_grid._custom_column_width.clear()
+
 func add_custom_row_height(row: int, height: float):
 	data_grid.add_custom_row_height(row, height)
+
+func clear_custom_row_height():
+	data_grid._custom_row_height.clear()
 
 
 
@@ -267,11 +300,13 @@ func _on_data_grid_gui_input(event):
 						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
 						var column_width = _last_clicked_cell_rect.size.x + mouse_offset.x
 						data_grid.add_custom_column_width(_last_clicked_cell.x, column_width)
+						column_width_row_height_changed.emit()
 						
 					Control.CURSOR_VSIZE:
 						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
 						var row_height = _last_clicked_cell_rect.size.y + mouse_offset.y
 						data_grid.add_custom_row_height(_last_clicked_cell.y, row_height)
+						column_width_row_height_changed.emit()
 
 
 func _value_changed(value):

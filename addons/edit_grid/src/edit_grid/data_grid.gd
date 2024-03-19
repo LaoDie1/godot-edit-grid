@@ -291,13 +291,6 @@ func is_in_view(cell: Vector2i) -> bool:
 		and cell.x < _columns_pos.size() \
 		and cell.y < _rows_pos.size()
 
-#func get_data(column: int, row: int):
-	#return _data.get(Vector2i(column, row))
-#
-#func get_datav(cell: Vector2i):
-	#if _data.has(cell.y):
-		#return _data[cell.y].get(cell.x)
-	#return null
 
 ## 设置自定义列宽
 func set_custom_column_width(data: Dictionary):
@@ -312,7 +305,7 @@ func set_custom_row_height(data: Dictionary):
 		_custom_row_height.clear()
 		_custom_row_height.merge(data)
 		queue_redraw()
-
+ 
 func add_custom_column_width(column: int, width: float):
 	_custom_column_width[column] = max(16, width)
 	queue_redraw()

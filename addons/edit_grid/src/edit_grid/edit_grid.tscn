@@ -92,7 +92,6 @@ visible = false
 layout_mode = 0
 offset_right = 183.0
 offset_bottom = 157.0
-box_size = Vector2(159, 130)
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]

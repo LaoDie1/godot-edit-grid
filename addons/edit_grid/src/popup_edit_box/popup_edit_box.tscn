@@ -18,10 +18,11 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
 script = ExtResource("1_qj0ea")
+box_size = Vector2(159, 130)
 
 [node name="edit_box" type="TextEdit" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 30)
+custom_minimum_size = Vector2(8, 8)
 layout_mode = 2
 offset_right = 159.0
 offset_bottom = 130.0
