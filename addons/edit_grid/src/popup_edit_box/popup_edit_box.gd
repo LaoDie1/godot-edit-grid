@@ -105,10 +105,9 @@ func popup(rect: Rect2 = Rect2()):
 	var t = _edit_box.text
 	_edit_box.grab_focus()
 	_edit_box.focus_exited.connect(func(): 
-		if t != _edit_box.text:
-			text = _edit_box.text
-			self.popup_hide.emit(_edit_box.text)
-		_edit_box.visible = false
+		text = _edit_box.text
+		self.popup_hide.emit(_edit_box.text)
+		self.hide()
 	, Object.CONNECT_ONE_SHOT)
 
 

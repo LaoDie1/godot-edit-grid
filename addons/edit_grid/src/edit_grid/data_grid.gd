@@ -50,6 +50,10 @@ signal draw_finished()
 	set(v):
 		default_height = v
 		queue_redraw()
+@export var text_color : Color = Color(1, 1, 1, 1):
+	set(v):
+		text_color = v
+		queue_redraw()
 
 
 var _rows_pos : Array = [] # 每个行所在的像素位置
@@ -169,14 +173,17 @@ func _draw_text(cell: Vector2i, text: String):
 	if rect.size.x < 0 or rect.size.y < 0:
 		return
 	var font : Font = get_theme_default_font()
-	var height = font.get_height()
-	draw_string(
+	var height : float = font.get_height()
+	var max_line : int = floori(rect.size.y / height)
+	draw_multiline_string(
 		font, 
 		rect.position + Vector2(0, height), 
 		text, 
 		HORIZONTAL_ALIGNMENT_LEFT, 
 		rect.size.x, 
-		get_theme_default_font_size()
+		get_theme_default_font_size(),
+		max_line,
+		text_color
 	)
 
 func _draw_texture(cell: Vector2i, texture: Texture2D):
@@ -313,6 +320,19 @@ func add_custom_column_width(column: int, width: float):
 func add_custom_row_height(row: int, height: float):
 	_custom_row_height[row] = max(16, height)
 	queue_redraw()
+
+func remove_custom_column_width(column: int) -> bool:
+	var r : bool = _custom_column_width.erase(column)
+	if r:
+		queue_redraw()
+	return r
+
+func remove_custom_row_height(row: int) -> bool:
+	var r : bool = _custom_row_height.erase(row)
+	if r:
+		queue_redraw()
+	return r
+
 
 
 # ## 添加要展示的数据

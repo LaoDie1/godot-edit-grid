@@ -7,7 +7,7 @@
 #============================================================
 ## 简单菜单
 ##
-##通过调用 [method init_menu] 方法进行初始化菜单项。
+##通过调用 [method init_menu] 方法初始化菜单项，[method init_shortcut] 初始化快捷键。
 @tool
 class_name SimpleMenu
 extends MenuBar
@@ -47,7 +47,7 @@ func get_menu(menu_path: StringName) -> PopupMenu:
 ## 添加快捷键
 ##[br]
 ##[br][code]menu_path[/code]  菜单路径
-##[br][code]data[/code]  快捷键数据，示例数据：ctrl + shift + C 快捷键
+##[br][code]data[/code]  快捷键数据，示例数据：[kbd]ctrl + shift + C[/kbd] 快捷键
 ##[codeblock]
 ##{
 ##    "ctrl": true,
@@ -92,12 +92,14 @@ func set_menu_disabled_by_path(menu_path: StringName, value: bool):
 	if menu and idx > -1:
 		menu.set_item_disabled(idx, value)
 
+## 设置菜单为复选框
 func set_menu_as_checkable(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
 	if menu and idx > 0:
 		menu.set_item_as_checkable(idx, value)
 
+## 设置菜单为勾选状态
 func set_menu_check_by_path(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
@@ -105,6 +107,7 @@ func set_menu_check_by_path(menu_path: StringName, value: bool):
 		menu.set_item_checked(idx, value)
 		self.menu_check_toggled.emit(idx, menu_path)
 
+## 获取这个菜单的勾选状态
 func get_menu_check_by_path(menu_path: StringName) -> bool:
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
@@ -112,6 +115,7 @@ func get_menu_check_by_path(menu_path: StringName) -> bool:
 		return menu.is_item_checked(idx)
 	return false
 
+## 切换菜单的勾选状态
 func toggle_menu_check_by_path(menu_path: StringName) -> bool:
 	return _execute_menu_by_path(menu_path, "is_item_checked", [])
 

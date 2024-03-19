@@ -19,8 +19,14 @@ extends Panel
 signal cell_value_changed(cell: Vector2i, last_value, current_value)
 ## 网格发生滚动
 signal scrolling()
-## 行高列宽发生改变
-signal column_width_row_height_changed()
+## 行高发生改变
+signal column_width_changed(column: int, last_width: int, width: int)
+## 列宽发生改变
+signal row_height_changed(row: int, last_height: int, height: int)
+## 已移除列宽
+signal column_width_removed(column: int)
+## 已移除行高
+signal row_height_removed(column: int)
 
 
 const MetaKey = {
@@ -39,12 +45,14 @@ const MetaKey = {
 
 var _last_control_node : Control
 var _last_clicked_pos : Vector2 = Vector2()
-var _last_clicked_cell : Vector2i = Vector2i()
+var _last_clicked_cell : Vector2i = Vector2i() # 上次点击的实际的网格
 var _last_clicked_cell_rect : Rect2 = Rect2()
 
 var _grid_data : Dictionary = {}
 var _last_cell_offset : Vector2i = Vector2i(0,0)
 var _cell_to_box_size_dict : Dictionary = {}
+var _last_drag_cell_line : bool = false # 拖拽网格大小
+
 
 
 #============================================================
@@ -68,11 +76,33 @@ func _scrolling():
 	self.scrolling.emit()
 
 
+# 更新当前位置的鼠标光标。如果在网格线上，则改变为箭头效果
+func _update_grid_cursor_shape() -> CursorShape:
+	var cell = data_grid.get_last_hover_cell()
+	var rect = data_grid.get_cell_rect(cell)
+	var mouse_pos = data_grid.get_local_mouse_position()
+	var diff = (rect.end - mouse_pos).abs()
+	const MAX_DIST = 8
+	if diff.x < MAX_DIST:
+		data_grid.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	elif diff.y < MAX_DIST:
+		data_grid.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+	else:
+		data_grid.mouse_default_cursor_shape = Control.CURSOR_ARROW
+	return data_grid.mouse_default_cursor_shape
+
+
+## 重新设置表格偏移
+func reset_cell_offset():
+	_last_cell_offset = Vector2i(0, 0)
+	h_scroll_bar.value = 0
+	v_scroll_bar.value = 0
+
+
 ## 获取配置数据
 func get_config_data() -> Dictionary:
 	var data : Dictionary = {}
 	data["_cell_to_box_size_dict"] = _cell_to_box_size_dict
-	data["_last_cell_offset"] = _last_cell_offset
 	
 	data["__data_grid"] = {
 		"_custom_column_width": data_grid._custom_column_width,
@@ -146,26 +176,36 @@ func get_cell_offset() -> Vector2i:
 	return Vector2i(h_scroll_bar.value, v_scroll_bar.value)
 
 
-func add_data(column: int, row: int, value):
+func add_data(column: int, row: int, value, emit_change_signal: bool = true):
+	if typeof(value) == TYPE_NIL or value == "":
+		remove_data(column, row, emit_change_signal)
+		data_grid.queue_redraw()
+		return
+	
 	if not _grid_data.has(row):
 		_grid_data[row] = {}
 	var last_value = _grid_data[row].get(column)
-	_grid_data[row][column] = value
-	self.cell_value_changed.emit(Vector2i(column, row), last_value, value)
-	data_grid.redraw_by_data(_grid_data)
+	if typeof(last_value) != typeof(value) or last_value != value:
+		_grid_data[row][column] = value
+		if emit_change_signal:
+			self.cell_value_changed.emit(Vector2i(column, row), last_value, value)
+		data_grid.redraw_by_data(_grid_data)
 
-func add_datav(cell: Vector2i, value):
-	add_data(cell.x, cell.y, value)
+func add_datav(cell: Vector2i, value, emit_change_signal: bool = true):
+	add_data(cell.x, cell.y, value, emit_change_signal)
 
-func remove_data(column: int, row: int) -> bool:
+func remove_data(column: int, row: int, emit_change_signal: bool = true) -> bool:
 	if _grid_data.has(row):
+		var last_value = _grid_data[row].get(column)
 		if _grid_data[row].erase(column):
-			self.cell_value_changed.emit(Vector2i(column, row), _grid_data[row][column], null)
+			if emit_change_signal:
+				self.cell_value_changed.emit(Vector2i(column, row), last_value, null)
 			return true
 	return false
 
-func remove_datav(cell: Vector2i) -> bool:
-	return remove_data(cell.x, cell.y)
+func remove_datav(cell: Vector2i, emit_change_signal: bool = true) -> bool:
+	return remove_data(cell.x, cell.y, emit_change_signal)
+
 
 ##设置自定义列宽。数据格式:
 ##{
@@ -184,17 +224,47 @@ func set_custom_row_height(data: Dictionary):
 	data_grid.set_custom_row_height(data)
 
 
-func add_custom_column_width(column: int, width: float):
-	data_grid.add_custom_column_width(column, width)
+func add_custom_column_width(column: int, width: float, emit_change_signal: bool = true):
+	var last_width : int = data_grid._custom_column_width.get(column, -1)
+	if last_width != width:
+		data_grid.add_custom_column_width(column, width)
+		if emit_change_signal:
+			self.column_width_changed.emit(column, -1, width)
 
-func clear_custom_column_width():
-	data_grid._custom_column_width.clear()
+func add_custom_row_height(row: int, height: float, emit_change_signal: bool = true):
+	var last_height : int = data_grid._custom_row_height.get(row, -1)
+	if last_height != height:
+		data_grid.add_custom_row_height(row, height)
+		if emit_change_signal:
+			self.row_height_changed.emit(row, -1, height)
 
-func add_custom_row_height(row: int, height: float):
-	data_grid.add_custom_row_height(row, height)
+func remove_custom_column_width(column: int, emit_remove_signal: bool = true) -> bool:
+	var r = data_grid.remove_custom_column_width(column)
+	if r and emit_remove_signal:
+		self.column_width_removed.emit(column)
+	return r
 
-func clear_custom_row_height():
-	data_grid._custom_row_height.clear()
+func remove_custom_row_height(row: int, emit_remove_signal: bool = true) -> bool:
+	var r = data_grid.remove_custom_row_height(row)
+	if r and emit_remove_signal:
+		self.row_height_removed.emit(row)
+	return r
+
+func clear_custom_column_width(emit_remove_signal: bool = false) -> void:
+	if not data_grid._custom_column_width.is_empty():
+		if emit_remove_signal:
+			for column in data_grid._custom_column_width:
+				self.column_width_removed.emit(column)
+		data_grid._custom_column_width.clear()
+		data_grid.queue_redraw()
+
+func clear_custom_row_height(emit_remove_signal: bool = false) -> void:
+	if not data_grid._custom_row_height.is_empty():
+		if emit_remove_signal:
+			for column in data_grid._custom_row_height:
+				self.row_height_removed.emit(column)
+		data_grid._custom_row_height.clear()
+		data_grid.queue_redraw()
 
 
 
@@ -203,9 +273,9 @@ func clear_custom_row_height():
 #============================================================
 func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 	var control_node : Control # 当前操作的节点
-	var value = get_cell_value(cell + get_cell_offset())
-	var rect = data_grid.get_cell_rect(cell) as Rect2
+	var rect : Rect2 = data_grid.get_cell_rect(cell) as Rect2
 	rect.position += data_grid.global_position
+	var value = get_cell_value(cell + get_cell_offset())
 	if typeof(value) != TYPE_NIL:
 		if not value is Object:
 			popup_edit_box.popup( rect )
@@ -229,7 +299,7 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 		control_node = popup_edit_box
 	
 	# 设置显示到的位置
-	var real_cell = cell + get_cell_offset()
+	var real_cell : Vector2i = cell + get_cell_offset()
 	control_node.visible = true
 	control_node.size = (_cell_to_box_size_dict[real_cell]
 		if _cell_to_box_size_dict.has(real_cell)
@@ -249,8 +319,8 @@ func _on_popup_edit_box_popup_hide(text):
 		var cell = popup_edit_box.get_meta(MetaKey.LAST_CELL)
 		if typeof(cell) != TYPE_NIL:
 			var last_data = get_cell_value(cell)
-			if typeof(last_data) == TYPE_NIL or str(last_data) != popup_edit_box.text:
-				add_datav(cell, popup_edit_box.text)
+			if typeof(last_data) == TYPE_NIL or str(last_data) != popup_edit_box.get_text():
+				add_datav(cell, popup_edit_box.get_text())
 		popup_edit_box.remove_meta(MetaKey.LAST_CELL)
 
 
@@ -260,53 +330,67 @@ func _on_popup_edit_box_input_switch_char(character):
 
 func _on_data_grid_gui_input(event):
 	if event is InputEventMouseButton:
-		if not event.pressed:
-			# 网格滚动
-			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				(h_scroll_bar 
+		if event.pressed:
+			# 按下鼠标按键
+			match event.button_index:
+				MOUSE_BUTTON_LEFT:
+					_last_clicked_pos = get_global_mouse_position()
+					_last_clicked_cell = data_grid.get_cell_by_mouse_pos() + get_cell_offset()
+					_last_clicked_cell_rect = data_grid.get_cell_rect( data_grid.get_cell_by_mouse_pos() )
+					_last_drag_cell_line = (
+						_update_grid_cursor_shape() in [
+							Control.CURSOR_VSIZE,
+							Control.CURSOR_HSIZE,
+						]
+					)
+			
+		else:
+			# 松开鼠标按键
+			match event.button_index:
+				MOUSE_BUTTON_WHEEL_DOWN:
+					(h_scroll_bar 
 					if Input.is_key_pressed(KEY_ALT) 
 					else v_scroll_bar).value += 1
 				
-			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
-				(h_scroll_bar 
+				MOUSE_BUTTON_WHEEL_UP:
+					(h_scroll_bar 
 					if Input.is_key_pressed(KEY_ALT) 
 					else v_scroll_bar).value -= 1
-		else:
-			if event.button_index == MOUSE_BUTTON_LEFT:
-				_last_clicked_pos = get_global_mouse_position()
-				_last_clicked_cell = data_grid.get_cell_by_mouse_pos() + get_cell_offset()
-				_last_clicked_cell_rect = data_grid.get_cell_rect( data_grid.get_cell_by_mouse_pos() )
-		
+				
+				MOUSE_BUTTON_LEFT:
+					if _last_drag_cell_line:
+						# 上次如果拖拽了，则发出信号
+						var curr_rect : Rect2 = data_grid.get_cell_rect(_last_clicked_cell)
+						var diff_pos : Vector2 = curr_rect.position - _last_clicked_cell_rect.position
+						var diff_size : Vector2 = curr_rect.size - _last_clicked_cell_rect.size
+						if diff_size == Vector2(0, 0):
+							diff_size = diff_pos
+						
+						if diff_size.x != 0:
+							column_width_changed.emit( _last_clicked_cell.x, _last_clicked_cell_rect.size.x, curr_rect.size.x)
+						if diff_size.y != 0:
+							row_height_changed.emit( _last_clicked_cell.y, _last_clicked_cell_rect.size.y, curr_rect.size.y)
+						_last_drag_cell_line = false
+					
+			
 	elif event is InputEventMouseMotion:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			var cell = data_grid.get_last_hover_cell()
-			var rect = data_grid.get_cell_rect(cell)
-			var mouse_pos = data_grid.get_local_mouse_position()
-			var diff = (rect.end - mouse_pos).abs()
-			const MAX_DIST = 8
-			if diff.x < MAX_DIST:
-				data_grid.mouse_default_cursor_shape = Control.CURSOR_HSIZE
-			elif diff.y < MAX_DIST:
-				data_grid.mouse_default_cursor_shape = Control.CURSOR_VSIZE
-			else:
-				data_grid.mouse_default_cursor_shape = Control.CURSOR_ARROW
+			_update_grid_cursor_shape()
 			
 		else:
 			
 			# 进行拖拽自定义行高列宽
-			if data_grid.mouse_default_cursor_shape != Control.CURSOR_ARROW:
+			if _last_drag_cell_line:
 				match data_grid.mouse_default_cursor_shape:
 					Control.CURSOR_HSIZE:
-						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
-						var column_width = _last_clicked_cell_rect.size.x + mouse_offset.x
-						data_grid.add_custom_column_width(_last_clicked_cell.x, column_width)
-						column_width_row_height_changed.emit()
+						var mouse_offset : Vector2 = get_global_mouse_position() - _last_clicked_pos
+						var column_width : int = _last_clicked_cell_rect.size.x + mouse_offset.x
+						add_custom_column_width(_last_clicked_cell.x, column_width, false)
 						
 					Control.CURSOR_VSIZE:
-						var mouse_offset = get_global_mouse_position() - _last_clicked_pos
-						var row_height = _last_clicked_cell_rect.size.y + mouse_offset.y
-						data_grid.add_custom_row_height(_last_clicked_cell.y, row_height)
-						column_width_row_height_changed.emit()
+						var mouse_offset : Vector2 = get_global_mouse_position() - _last_clicked_pos
+						var row_height : int = _last_clicked_cell_rect.size.y + mouse_offset.y
+						add_custom_row_height(_last_clicked_cell.y, row_height, false)
 
 
 func _value_changed(value):

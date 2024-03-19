@@ -101,6 +101,7 @@ filters = PackedStringArray("*.egd;EGD")
 
 [connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="cell_value_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_cell_value_changed"]
-[connection signal="column_width_row_height_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_column_width_row_height_changed"]
+[connection signal="column_width_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_column_width_changed"]
+[connection signal="row_height_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_row_height_changed"]
 [connection signal="file_selected" from="OpenFileDialog" to="." method="_open_grid_data"]
 [connection signal="file_selected" from="SaveFileDialog" to="." method="_save_grid_data"]
