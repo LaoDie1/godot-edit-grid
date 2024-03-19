@@ -102,7 +102,7 @@ func reset_cell_offset():
 ## 获取配置数据
 func get_config_data() -> Dictionary:
 	var data : Dictionary = {}
-	data["_cell_to_box_size_dict"] = _cell_to_box_size_dict
+	#data["_cell_to_box_size_dict"] = _cell_to_box_size_dict
 	
 	data["__data_grid"] = {
 		"_custom_column_width": data_grid._custom_column_width,

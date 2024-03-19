@@ -12,7 +12,7 @@
 extends MarginContainer
 
 
-const FILE_FORMAT = "egd" # Godot Edit Grid Data File
+const FILE_FORMAT = "egd" # Edit Grid Data
 
 
 @onready var menu = %Menu
@@ -36,7 +36,7 @@ var _save_status : bool = true:
 var _current_file_path: String = "":
 	set(v):
 		_current_file_path = v
-		file_path_label.text = "null" if _current_file_path == "" else _current_file_path
+		file_path_label.text = ("null" if _current_file_path == "" else _current_file_path)
 var _prompt_tween : Tween
 var _undo_redo : UndoRedo = UndoRedo.new()
 
@@ -60,9 +60,7 @@ func _ready():
 		"File": [
 			"New", "Open", "-", 
 			"Save", "Save As", "-", 
-			{
-				"Export": ["JSON", "CSV"],
-			}, "-",
+			{ "Export": ["JSON", "CSV"] }, "-",
 			"Print",
 		],
 		"Edit": [
@@ -154,9 +152,8 @@ func _save_as():
 
 func _check_save() -> bool:
 	if not _save_status:
-		# 没有保存时
+		# TODO 没有保存时处理
 		pass
-		# TODO 写功能
 		#return false
 		
 	return true
@@ -172,6 +169,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			if _check_save():
 				_reset_variable()
 				_current_file_path = ""
+				edit_grid._cell_to_box_size_dict = {}
 				edit_grid.reset_cell_offset()
 				edit_grid.clear_custom_column_width()
 				edit_grid.clear_custom_row_height()
@@ -214,8 +212,7 @@ func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable):
 	_undo_redo.add_undo_method(redo_method)
 	_undo_redo.commit_action(false)
 	
-	menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo() )
-	print(action_name)
+	menu.set_menu_disabled_by_path("/Edit/Undo", false)
 
 
 func _on_edit_grid_cell_value_changed(cell: Vector2i, last_value, current_value):
