@@ -31,5 +31,23 @@ func _get_plugin_name():
 	return "EditGrid"
 
 func _get_plugin_icon():
-	return EditorInterface.get_editor_theme().get_icon("GridContainer", "EditorIcons")
+	var icon = get_editor_interface() \
+		.get_editor_theme() \
+		.get_icon("GridContainer", "EditorIcons")
+	var image : Image = icon.get_image()
+	# 转为白色
+	var data : PackedByteArray = PackedByteArray()
+	for byte in image.get_data():
+		if byte > 0:
+			data.push_back(230)
+		else:
+			data.push_back(0)
+	var new_image = Image.create_from_data(
+		image.get_width(),
+		image.get_height(),
+		image.has_mipmaps(),
+		image.get_format(),
+		data
+	)
+	return ImageTexture.create_from_image(new_image)
 

@@ -29,6 +29,7 @@ size_flags_vertical = 3
 [node name="Menu" type="MenuBar" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+flat = true
 script = ExtResource("2_jq386")
 
 [node name="EditGrid" parent="VBoxContainer" instance=ExtResource("1_v8wrj")]

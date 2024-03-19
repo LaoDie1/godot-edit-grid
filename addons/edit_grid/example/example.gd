@@ -20,6 +20,7 @@ const TEST_DATA = {
 	}
 
 @onready var edit_grid = %EditGrid
+@onready var edit_main = $VBoxContainer/EditMain
 
 
 
@@ -34,7 +35,7 @@ func _ready():
 	#edit_grid.set_grid_data(data)
 	#edit_grid.add_data(0, 0, 100)
 	
-	edit_grid.set_grid_data(TEST_DATA)
+	edit_main.edit_grid.set_grid_data(TEST_DATA)
 	
 	# 设置列宽
 	#edit_grid.set_custom_column_width({
