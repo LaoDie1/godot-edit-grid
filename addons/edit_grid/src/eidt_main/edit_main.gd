@@ -57,7 +57,8 @@ func _ready():
 #============================================================
 #  连接信号
 #============================================================
-func _on_menu_menu_pressed(idx, menu_path):
+func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
+	print(menu_path)
 	match menu_path:
 		"/File/Print":
 			_save_status = true
@@ -69,3 +70,4 @@ func _on_menu_menu_pressed(idx, menu_path):
 
 func _on_edit_grid_cell_value_changed(cell, last_value, current_value):
 	_save_status = false
+

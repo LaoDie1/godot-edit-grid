@@ -323,9 +323,10 @@ func _create_popup_menu(path: StringName) -> PopupMenu:
 func _set_popup_menu(menu_path: StringName, menu_popup: PopupMenu):
 	self._menu_path_to_popup_menu_map[menu_path] = menu_popup
 	# 点击菜单时
-	menu_popup.id_pressed.connect(func(id):
-		self.menu_pressed.emit(id, _idx_to_menu_path_map[id])
-	)
+	menu_popup.id_pressed.connect(_id_pressed)
 
+
+func _id_pressed(id):
+	self.menu_pressed.emit(id, _idx_to_menu_path_map[id])
 
 

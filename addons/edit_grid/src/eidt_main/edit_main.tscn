@@ -69,5 +69,5 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Saved"
 
-[connection signal="menu_pressed" from="VBoxContainer/Menu" to="VBoxContainer" method="_on_menu_menu_pressed"]
-[connection signal="cell_value_changed" from="VBoxContainer/EditGrid" to="VBoxContainer" method="_on_edit_grid_cell_value_changed"]
+[connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
+[connection signal="cell_value_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_cell_value_changed"]
