@@ -272,9 +272,14 @@ func clear_custom_row_height(emit_remove_signal: bool = false) -> void:
 #  连接信号
 #============================================================
 func _on_edit_grid_cell_double_clicked(cell: Vector2i):
+	var real_cell : Vector2i = cell + get_cell_offset()
 	var control_node : Control # 当前操作的节点
 	var rect : Rect2 = data_grid.get_cell_rect(cell) as Rect2
 	rect.position += data_grid.global_position
+	rect.size = (_cell_to_box_size_dict[real_cell]
+		if _cell_to_box_size_dict.has(real_cell)
+		else data_grid.get_cell_rect(cell).size
+	)
 	var value = get_cell_value(cell + get_cell_offset())
 	if typeof(value) != TYPE_NIL:
 		if not value is Object:
@@ -288,6 +293,7 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 			if value is Image:
 				value = ImageTexture.create_from_image(value)
 			cell_texture_rect.texture = value
+			cell_texture_rect.size = rect.size
 			control_node = cell_texture_rect
 		
 	else:
@@ -299,12 +305,7 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 		control_node = popup_edit_box
 	
 	# 设置显示到的位置
-	var real_cell : Vector2i = cell + get_cell_offset()
 	control_node.visible = true
-	control_node.size = (_cell_to_box_size_dict[real_cell]
-		if _cell_to_box_size_dict.has(real_cell)
-		else data_grid.get_cell_rect(cell).size
-	)
 	control_node.global_position = rect.position
 	_last_control_node = control_node
 
