@@ -228,7 +228,7 @@ func _on_edit_grid_cell_value_changed(cell: Vector2i, last_value, current_value)
 	
 	_save_status = false
 	_add_undo_redo(
-		"修改单元格的值",
+		"alter cell value",
 		edit_grid.add_datav.bind(cell, current_value, false),
 		edit_grid.add_datav.bind(cell, last_value, false)
 	)
@@ -242,7 +242,7 @@ func _on_edit_grid_column_width_changed(column: int, last_width: int, width: Var
 		else edit_grid.add_custom_column_width.bind(column, last_width, false)
 	)
 	_add_undo_redo(
-		"修改列宽",
+		"alter column width",
 		edit_grid.add_custom_column_width.bind(column, width, false),
 		( # 撤销方法
 			edit_grid.remove_custom_column_width.bind(column, false)
@@ -255,7 +255,7 @@ func _on_edit_grid_column_width_changed(column: int, last_width: int, width: Var
 func _on_edit_grid_row_height_changed(row: int, last_height: int, height: Variant) -> void:
 	_save_status = false
 	_add_undo_redo(
-		"修改行高",
+		"alter row height",
 		edit_grid.add_custom_row_height.bind(row, height, false),
 		( # 撤销方法
 			edit_grid.remove_custom_row_height.bind(row, false)
