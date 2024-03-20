@@ -58,7 +58,7 @@ var _last_drag_cell_line : bool = false # 拖拽网格大小
 #============================================================
 #  自定义
 #============================================================
-func _scrolling():
+func _update():
 	# 表格正在滚动
 	h_scroll_bar.max_value = h_scroll_bar.value + 10
 	v_scroll_bar.max_value = v_scroll_bar.value + 10
@@ -401,7 +401,7 @@ func _value_changed(value):
 			_last_control_node.hide()
 		
 		_last_cell_offset = cell_offset
-		_scrolling()
+		_update()
 
 
 func _on_popup_edit_box_box_size_changed(box_size):
@@ -411,11 +411,9 @@ func _on_popup_edit_box_box_size_changed(box_size):
 
 
 func _on_data_grid_cell_number_changed(column:int, row:int):
-	#var max_v = Vector2i(
-		#data_grid.get_max_cell().x + column,
-		#data_grid.get_max_cell().y + row
-	#)
-	#h_scroll_bar.max_value = max_v.x
-	#v_scroll_bar.max_value = max_v.y
-	_scrolling()
+	_update()
+
+
+func _on_data_grid_draw_finished() -> void:
+	_update()
 

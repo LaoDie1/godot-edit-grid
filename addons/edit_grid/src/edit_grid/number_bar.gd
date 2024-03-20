@@ -9,6 +9,11 @@
 extends Panel
 
 
+## 显示的文本颜色
+@export var text_color : Color = Color.WHITE:
+	set(v):
+		text_color = v
+		queue_redraw()
 ## 绘制方向
 @export_enum("Column", "Row") var draw_direction : int = 0:
 	set(v):
@@ -28,6 +33,7 @@ extends Panel
 var _offset : int = 0
 var _blank_width : Dictionary = {}
 var _p_list : Array = [] # 点位列表
+
 
 
 #============================================================
@@ -63,7 +69,8 @@ func _draw():
 			str(num_idx) if not character_format else to_26_base(num_idx), 
 			HORIZONTAL_ALIGNMENT_CENTER, 
 			rect.size.x, 
-			get_theme_default_font_size()
+			get_theme_default_font_size(),
+			text_color
 		)
 
 

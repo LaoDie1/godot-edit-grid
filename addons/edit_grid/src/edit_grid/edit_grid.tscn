@@ -35,6 +35,7 @@ unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
+text_color = null
 character_format = true
 
 [node name="left_number_bar" type="Panel" parent="GridContainer"]
@@ -42,6 +43,7 @@ unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
+text_color = null
 draw_direction = 1
 default_width = 40
 
@@ -95,8 +97,9 @@ offset_bottom = 157.0
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]
+[connection signal="cell_hovered" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_hovered"]
 [connection signal="cell_number_changed" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_number_changed"]
-[connection signal="draw_finished" from="GridContainer/GridContainer/DataGrid" to="." method="_scrolling"]
+[connection signal="draw_finished" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_draw_finished"]
 [connection signal="gui_input" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_gui_input"]
 [connection signal="value_changed" from="GridContainer/GridContainer/VScrollBar" to="." method="_value_changed"]
 [connection signal="value_changed" from="GridContainer/GridContainer/HScrollBar" to="." method="_value_changed"]
