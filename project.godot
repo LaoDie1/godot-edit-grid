@@ -18,4 +18,4 @@ config/icon="res://icon.svg"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/bottom_file_manage/plugin.cfg", "res://addons/edit_grid/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
+enabled=PackedStringArray("res://addons/edit_grid/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
