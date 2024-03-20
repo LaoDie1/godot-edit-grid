@@ -90,19 +90,37 @@ clip_text = true
 [node name="OpenFileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
 title = "Open a File"
-size = Vector2i(500, 350)
+size = Vector2i(550, 350)
 ok_button_text = "打开"
 file_mode = 0
 filters = PackedStringArray("*.egd;EGD")
 
 [node name="SaveFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
 title = "Save As"
-size = Vector2i(500, 350)
+size = Vector2i(550, 350)
 filters = PackedStringArray("*.egd;EGD")
+
+[node name="ImportFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(550, 350)
+ok_button_text = "打开"
+file_mode = 0
+filters = PackedStringArray("*.csv;CSV")
+
+[node name="ExportFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+size = Vector2i(550, 350)
+ok_button_text = "保存"
+filters = PackedStringArray("*.csv;CSV")
 
 [connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="cell_value_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_cell_value_changed"]
 [connection signal="column_width_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_column_width_changed"]
 [connection signal="row_height_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_row_height_changed"]
+[connection signal="selected_cells" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_selected_cells"]
 [connection signal="file_selected" from="OpenFileDialog" to="." method="_open_grid_data"]
 [connection signal="file_selected" from="SaveFileDialog" to="." method="_save_grid_data"]
+[connection signal="file_selected" from="ImportFileDialog" to="." method="_import_file"]
+[connection signal="file_selected" from="ExportFileDialog" to="." method="_export_file"]

@@ -35,7 +35,6 @@ unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
-text_color = null
 character_format = true
 
 [node name="left_number_bar" type="Panel" parent="GridContainer"]
@@ -43,7 +42,6 @@ unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 script = ExtResource("2_unwlq")
-text_color = null
 draw_direction = 1
 default_width = 40
 

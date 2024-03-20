@@ -69,7 +69,7 @@ func update_color():
 	var editor_settings : EditorSettings = get_editor_interface().get_editor_settings()
 	var text_color : Color = editor_settings.get_setting("text_editor/theme/highlighting/text_color")
 	
-	var edit_grid : EditGrid = plugin_control.edit_grid
+	var edit_grid = plugin_control.edit_grid
 	edit_grid.data_grid.panel_border_color = text_color
 	edit_grid.data_grid.grid_color = text_color
 	edit_grid.data_grid.text_color = text_color

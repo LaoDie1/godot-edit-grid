@@ -13,7 +13,6 @@ class_name DataGrid
 extends Control
 
 
-
 ## 单元格被点击
 signal cell_clicked(cell: Vector2i)
 ## 单元格被双击
@@ -67,6 +66,9 @@ var _last_hover_cell : Vector2i = Vector2i(-1, -1) # 鼠标经过到的单元格
 
 var _custom_column_width : Dictionary = {} # 自定义某个列宽
 var _custom_row_height : Dictionary = {} # 自定义某个行高
+var _selected_cells : Dictionary = {} # 选中的单元格
+var _last_selected_cells_rect : Rect2i = Rect2i() # 选中的网格范围（没有计算偏移）
+
 
 
 #============================================================
@@ -130,23 +132,32 @@ func _draw():
 	self.ready_draw.emit()
 	
 	# 绘制每个网格上的数据
-	var data_left_top_cell : Vector2i = Vector2i(0, 0)
+	var data_cell : Vector2i = Vector2i(0, 0) # 数据所在的实际单元格
 	for row in _rows_pos.size()-1:
-		data_left_top_cell.y = row + _cell_offset.y
-		if _data.has(data_left_top_cell.y):
-			var columns_data : Dictionary = _data[data_left_top_cell.y]
+		data_cell.y = row + _cell_offset.y
+		if _data.has(data_cell.y):
+			var columns_data : Dictionary = _data[data_cell.y]
 			for column in _columns_pos.size()-1:
-				data_left_top_cell.x = column + _cell_offset.x
-				if columns_data.has(data_left_top_cell.x):
+				data_cell.x = column + _cell_offset.x
+				if columns_data.has(data_cell.x):
 					var draw_data : DrawData = DrawData.new()
 					draw_data.cell = Vector2i(column, row)
-					draw_data.value = columns_data[data_left_top_cell.x]
+					draw_data.value = columns_data[data_cell.x]
 					self.will_draw.emit(draw_data)
 					# 进行绘制
 					_draw_data(draw_data)
+	for row in _rows_pos.size()-1:
+		var cell = Vector2i()
+		cell.y = row
+		for column in _columns_pos.size()-1:
+			cell.x = column
+			if _selected_cells.has(cell + get_cell_offset()):
+				var rect : Rect2i = get_cell_rect(cell)
+				draw_rect( rect, grid_color, false, grid_line_width + 2)
 	
 	self.draw_finished.emit()
 	
+	# 绘制边框
 	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
 
 
@@ -333,30 +344,49 @@ func remove_custom_row_height(row: int) -> bool:
 		queue_redraw()
 	return r
 
+func add_select_cell(column: int, row: int):
+	add_select_cellv(Vector2i(column, row))
+
+func add_select_cellv(cell: Vector2):
+	_selected_cells[cell] = null
+	queue_redraw()
+
+func remove_select_cell(column: int, row: int):
+	remove_select_cellv(Vector2i(column, row))
+
+func remove_select_cellv(cell: Vector2i):
+	_selected_cells.erase(cell)
 
 
-# ## 添加要展示的数据
-#func add_data(column: int, row: int, value) -> void:
-	#if (value is String and value == "") or typeof(value) == TYPE_NIL:
-		#remove_data(column, row)
-		#return
-	#if not _data.has(row):
-		#_data[row] = {}
-	#_data[row][column] = value
-	#queue_redraw()
-#
-#func add_datav(cell: Vector2i, value) -> void:
-	#add_data(cell.x, cell.y, value)
-#
-# ## 移除展示的数据
-#func remove_data(column: int, row: int) -> bool:
-	#if _data.has(row) and _data[row].erase(column):
-		#if _data[row].is_empty():
-			#_data.erase(row)
-		#queue_redraw()
-		#return true
-	#return false
-#
-#func remove_datav(cell: Vector2i) -> bool:
-	#return remove_data(cell.x, cell.y)
-#
+func add_select_cell_by_pos(begin_pos: Vector2, end_pos: Vector2) -> bool:
+	var tmp_begin_pos = begin_pos
+	begin_pos.x = minf(begin_pos.x, end_pos.x)
+	begin_pos.y = minf(begin_pos.y, end_pos.y)
+	end_pos.x = maxf(tmp_begin_pos.x, end_pos.x)
+	end_pos.y = maxf(tmp_begin_pos.y, end_pos.y)
+	var begin : Vector2i = get_cell_by_pos(begin_pos)
+	var end : Vector2i = get_cell_by_pos(end_pos)
+	var rect : Rect2i = Rect2i(begin, end - begin)
+	if _last_selected_cells_rect != rect:
+		_selected_cells.clear()
+		_last_selected_cells_rect = rect
+		for column in range(begin.x, end.x + 1):
+			for row in range(begin.y, end.y + 1):
+				_selected_cells[Vector2i(column, row) + get_cell_offset()] = null
+		queue_redraw()
+		return true
+	return false
+
+
+func clear_select_cells() -> void:
+	if not _selected_cells.is_empty():
+		_last_selected_cells_rect = Rect2i()
+		_selected_cells.clear()
+		queue_redraw()
+
+
+## 获取选中的表格
+func get_selected_cells() -> Array:
+	return _selected_cells.keys()
+
+
