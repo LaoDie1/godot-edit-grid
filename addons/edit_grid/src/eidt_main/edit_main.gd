@@ -99,7 +99,7 @@ func _ready():
 	prompt.modulate.a = 0
 	
 	_undo_redo.version_changed.connect(func():
-		self._save_status = false
+		self._save_status = not _undo_redo.has_undo()
 	)
 
 
@@ -311,7 +311,7 @@ func __menu_clear():
 	var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
 	if not selected_data.is_empty():
 		_add_undo_redo(
-			"粘贴", 
+			"清空数据", 
 			_alter_rect_cell.bind(rect, rect, {}),
 			_alter_rect_cell.bind(rect, rect, selected_data),
 			true
