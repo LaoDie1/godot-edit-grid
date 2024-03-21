@@ -366,25 +366,22 @@ func remove_select_cellv(cell: Vector2i):
 	_selected_cells.erase(cell)
 
 
-func add_select_cell_by_pos(begin_pos: Vector2, end_pos: Vector2) -> bool:
-	var tmp_begin_pos = begin_pos
-	begin_pos.x = minf(begin_pos.x, end_pos.x)
-	begin_pos.y = minf(begin_pos.y, end_pos.y)
-	end_pos.x = maxf(tmp_begin_pos.x, end_pos.x)
-	end_pos.y = maxf(tmp_begin_pos.y, end_pos.y)
-	var begin : Vector2i = get_cell_by_pos(begin_pos)
-	var end : Vector2i = get_cell_by_pos(end_pos)
+func add_select_cells(begin: Vector2i, end: Vector2i) -> bool:
+	var tmp = begin
+	begin.x = min(begin.x, end.x)
+	begin.y = min(begin.y, end.y)
+	end.x = max(tmp.x, end.x)
+	end.y = max(tmp.y, end.y)
 	var rect : Rect2i = Rect2i(begin, end - begin)
 	if _last_selected_cells_rect != rect:
 		_selected_cells.clear()
 		_last_selected_cells_rect = rect
 		for column in range(begin.x, end.x + 1):
 			for row in range(begin.y, end.y + 1):
-				_selected_cells[Vector2i(column, row) + get_cell_offset()] = null
+				_selected_cells[Vector2i(column, row)] = null
 		queue_redraw()
 		return true
 	return false
-
 
 func clear_select_cells() -> void:
 	if not _selected_cells.is_empty():

@@ -55,7 +55,7 @@ var _last_clicked_cell_rect : Rect2 = Rect2()
 
 var _grid_data : Dictionary = {}
 var _last_cell_offset : Vector2i = Vector2i(0,0)
-var _cell_to_box_size_dict : Dictionary = {}
+var _cell_to_box_size_dict : Dictionary = {} # 编辑时的网格大小
 var _drag_cell_line_status : bool = false # 拖拽网格大小
 var _selecting_cells_status : bool = false: # 是否正在选中网格
 	set(v):
@@ -449,7 +449,7 @@ func _on_data_grid_gui_input(event):
 		else:
 			if _selecting_cells_status:
 				# 选中网格
-				data_grid.add_select_cell_by_pos(_last_clicked_pos, data_grid.get_local_mouse_position() )
+				data_grid.add_select_cells(_last_clicked_cell, data_grid.get_cell_by_mouse_pos() + get_cell_offset() )
 			
 			# 进行拖拽自定义行高列宽
 			if _drag_cell_line_status:
