@@ -25,6 +25,7 @@ const FILE_FORMAT = "egd" # Edit Grid Data
 @onready var save_file_dialog: FileDialog = %SaveFileDialog
 @onready var import_file_dialog: FileDialog = %ImportFileDialog
 @onready var export_file_dialog: FileDialog = %ExportFileDialog
+@onready var confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 
 
 var _save_status : bool = true:
@@ -94,10 +95,6 @@ func _ready():
 	})
 	menu.set_menu_disabled_by_path("/Edit/Undo", true)
 	menu.set_menu_disabled_by_path("/Edit/Redo", true)
-	menu.set_menu_disabled_by_path("/Edit/Copy", true)
-	menu.set_menu_disabled_by_path("/Edit/Cut", true)
-	menu.set_menu_disabled_by_path("/Edit/Paste", true)
-	menu.set_menu_disabled_by_path("/Edit/Clear", true)
 	
 	prompt.modulate.a = 0
 	
@@ -148,6 +145,7 @@ func _reset_variable():
 	_copied_data = {}
 	_undo_redo.clear_history(false)
 	_save_status = true
+	edit_grid.clear_select_cells()
 	menu.set_menu_disabled_by_path("/Edit/Undo", true)
 	menu.set_menu_disabled_by_path("/Edit/Redo", true)
 
@@ -170,27 +168,15 @@ func _save_grid_data(path: String):
 	_reset_variable()
 	show_prompt("已保存文件: " + path)
 
-func _save_as():
-	save_file_dialog.popup_centered()
-
-func _check_save() -> bool:
+# 检查保存状态，如果为 true，则执行功能
+var _confirm_call_method: Callable
+func _check_save_to_call(active_method: Callable):
 	if not _save_status:
-		# TODO 没有保存时处理
-		pass
-		#return false
-		
-	return true
+		_confirm_call_method = active_method
+		confirmation_dialog.popup_centered()
+	else:
+		active_method.call()
 
-func _new_file():
-	_reset_variable()
-	_current_file_path = ""
-	edit_grid._cell_to_box_size_dict = {}
-	edit_grid.reset_cell_offset()
-	edit_grid.clear_custom_column_width()
-	edit_grid.clear_custom_row_height()
-	edit_grid.set_grid_data({})
-	edit_grid.clear_select_cells()
-	_on_edit_grid_selected_cells()
 
 func _export_file(path: String):
 	match path.get_extension():
@@ -205,7 +191,7 @@ func _import_file(path: String):
 	if FileAccess.file_exists(path):
 		match path.get_extension():
 			"csv":
-				_new_file()
+				__menu_new_file()
 				_current_file_path = ""
 				_save_status = false
 				var data : Dictionary = EditGridUtil.get_csv_file_data(path)
@@ -232,19 +218,103 @@ func _copy():
 				column_data[column] = value
 		if not column_data.is_empty():
 			_copied_data[row] = column_data
+	print_debug("复制数据：", _copied_data )
 
 
-func _alter_rect_cell(curr_rect: Rect2i, last_rect: Rect2i, data: Dictionary):
+func _alter_rect_cell(curr_rect: Rect2i, data_offset_rect: Rect2i, data: Dictionary):
+	# data_offset_rect 用于偏移位置到 data 中的位置设置 curr_rect 位置的表格中
 	var data_cell : Vector2i
 	var cell: Vector2i
 	for row in curr_rect.size.y + 1:
-		data_cell.y = last_rect.position.y + row
+		data_cell.y = data_offset_rect.position.y + row
 		var row_data : Dictionary = data.get(data_cell.y, {})
 		for column in curr_rect.size.x + 1:
 			cell = curr_rect.position + Vector2i(column, row)
-			data_cell.x = last_rect.position.x + column
+			data_cell.x = data_offset_rect.position.x + column
 			# 粘贴
 			edit_grid.add_data(cell.x, cell.y, row_data.get(data_cell.x), false)
+
+
+#============================================================
+#  菜单功能
+#============================================================
+func __menu_save():
+	if _current_file_path == "":
+		__menu_save_as()
+	else:
+		if not _save_status:
+			_save_grid_data(_current_file_path)
+
+func __menu_save_as():
+	save_file_dialog.popup_centered()
+
+func __menu_new_file():
+	_reset_variable()
+	_current_file_path = ""
+	edit_grid._cell_to_box_size_dict = {}
+	edit_grid.reset_cell_offset()
+	edit_grid.clear_custom_column_width()
+	edit_grid.clear_custom_row_height()
+	edit_grid.set_grid_data({})
+	edit_grid.clear_select_cells()
+	_on_edit_grid_selected_cells()
+
+func __menu_copy():
+	_copy()
+	if not _copied_data.is_empty():
+		show_prompt("已复制", 0.75)
+		print("复制数据：", _copied_data)
+
+func __menu_cut():
+	if edit_grid.get_select_cell_count() > 0:
+		_copy()
+		_cut_status = true
+
+func __menu_paste():
+	if not _copied_data.is_empty():
+		# 粘贴选中的区域的数据
+		var select_rect : Rect2i = edit_grid.get_select_cell_rect()
+		select_rect.position += edit_grid.get_cell_offset()
+		var copy_data : Dictionary = _copied_data.duplicate(true)
+		# 执行
+		var cut : bool = _cut_status
+		var do : Callable = func():
+			if cut:
+				_alter_rect_cell(_copied_rect, _copied_rect, {})
+			_alter_rect_cell(select_rect, _copied_rect, copy_data)
+		# 撤销
+		var selected_data : Dictionary = edit_grid.get_data_by_rect(select_rect)
+		var undo : Callable = func():
+			_alter_rect_cell(select_rect, select_rect, selected_data) # 还原选中的区域的数据
+			if cut:
+				_alter_rect_cell(_copied_rect, _copied_rect, copy_data) # 还原剪切的数据
+		_add_undo_redo( "粘贴", do, undo, true)
+		_cut_status = false
+
+func __menu_clear():
+	var rect : Rect2i = edit_grid.get_select_cell_rect()
+	rect.position += edit_grid.get_cell_offset()
+	var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
+	if not selected_data.is_empty():
+		print(selected_data)
+		_add_undo_redo(
+			"粘贴", 
+			_alter_rect_cell.bind(rect, rect, {}),
+			_alter_rect_cell.bind(rect, rect, selected_data),
+			true
+		)
+
+func __menu_undo():
+	_undo_redo.undo()
+	menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
+	menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
+
+
+func __menu_redo():
+	_undo_redo.redo()
+	menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
+	menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
+
 
 
 #============================================================
@@ -252,93 +322,32 @@ func _alter_rect_cell(curr_rect: Rect2i, last_rect: Rect2i, data: Dictionary):
 #============================================================
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
-		"/File/New":
-			if _check_save():
-				_new_file()
-		
-		"/File/Open":
-			if _check_save():
-				open_file_dialog.popup_centered()
-		
-		"/File/Save":
-			if _current_file_path == "":
-				_save_as()
-			else:
-				if not _save_status:
-					_save_grid_data(_current_file_path)
-		
-		"/File/Save As":
-			_save_as()
-		
-		"/File/Export/CSV":
-			if _check_save():
-				export_file_dialog.popup_centered()
-		
-		"/File/Import/CSV":
-			if _check_save():
-				import_file_dialog.popup_centered()
+		"/File/New": _check_save_to_call(__menu_new_file)
+		"/File/Open": _check_save_to_call(open_file_dialog.popup_centered)
+		"/File/Save": __menu_save()
+		"/File/Save As": __menu_save_as()
+		"/File/Export/CSV": _check_save_to_call(export_file_dialog.popup_centered)
+		"/File/Import/CSV": _check_save_to_call(import_file_dialog.popup_centered)
 		
 		"/File/Print":
 			print("打印数据：", edit_grid.get_grid_data())
 		
-		"/Edit/Undo":
-			_undo_redo.undo()
-			menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
-			menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
-			
-		"/Edit/Redo":
-			_undo_redo.redo()
-			menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
-			menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
-		
-		"/Edit/Copy":
-			_copy()
-			if not _copied_data.is_empty():
-				show_prompt("已复制", 0.75)
-				print("复制数据：", _copied_data)
-		
-		"/Edit/Cut":
-			if edit_grid.get_select_cell_count() > 0:
-				_copy()
-				_cut_status = true
-		
-		"/Edit/Paste":
-			if not _copied_data.is_empty():
-				# 剪切掉之前的内容
-				if _cut_status:
-					_alter_rect_cell(_copied_rect, _copied_rect, {})
-					_cut_status = false
-				# 粘贴选中的区域的数据
-				var rect : Rect2i = edit_grid.get_select_cell_rect()
-				rect.position += edit_grid.get_cell_offset()
-				var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
-				_add_undo_redo(
-					"粘贴", 
-					_alter_rect_cell.bind(rect, _copied_rect, _copied_data),
-					_alter_rect_cell.bind(rect, rect, selected_data),
-					true
-				)
-			
-		"/Edit/Clear":
-			var rect : Rect2i = edit_grid.get_select_cell_rect()
-			rect.position += edit_grid.get_cell_offset()
-			var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
-			_add_undo_redo(
-				"粘贴", 
-				_alter_rect_cell.bind(rect, rect, {}),
-				_alter_rect_cell.bind(rect, rect, selected_data),
-				true
-			)
+		"/Edit/Undo": __menu_undo()
+		"/Edit/Redo": __menu_redo()
+		"/Edit/Copy": __menu_copy()
+		"/Edit/Cut": __menu_cut()
+		"/Edit/Paste": __menu_paste()
+		"/Edit/Clear": __menu_clear()
 			
 		_:
 			printerr("没有实现功能。菜单路径：", menu_path)
 
 
-func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, action : bool = true):
+func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, action_do_method : bool):
 	_undo_redo.create_action(action_name)
 	_undo_redo.add_do_method(do_method)
 	_undo_redo.add_undo_method(redo_method)
-	_undo_redo.commit_action(action)
+	_undo_redo.commit_action(action_do_method)
 	
 	menu.set_menu_disabled_by_path("/Edit/Undo", false)
 
@@ -390,7 +399,23 @@ func _on_edit_grid_row_height_changed(row: int, last_height: int, height: Varian
 
 func _on_edit_grid_selected_cells() -> void:
 	menu.set_menu_disabled_by_path("/Edit/Copy", edit_grid.get_select_cell_count()==0)
-	menu.set_menu_disabled_by_path("/Edit/Cut", edit_grid.get_select_cell_count()==0 )
-	menu.set_menu_disabled_by_path("/Edit/Clear", edit_grid.get_select_cell_count()==0 )
+	menu.set_menu_disabled_by_path("/Edit/Cut",  edit_grid.get_select_cell_count()==0 )
 	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
+	menu.set_menu_disabled_by_path("/Edit/Clear", edit_grid.get_select_cell_count()==0 )
+	
+	edit_grid.set_grid_menu_disabled("Copy", edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_disabled("Cut",  edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_disabled("Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_disabled("Clear", edit_grid.get_select_cell_count()==0 )
 
+
+func _on_confirmation_dialog_confirmed() -> void:
+	_confirm_call_method.call()
+
+
+func _on_edit_grid_popup_menu_clicked(item_name: String) -> void:
+	match item_name:
+		"Copy": __menu_copy()
+		"Paste": __menu_paste()
+		"Cut": __menu_cut()
+		"Clear": __menu_clear()

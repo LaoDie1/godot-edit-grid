@@ -29,6 +29,8 @@ signal column_width_removed(column: int)
 signal row_height_removed(column: int)
 ## 选中单元格
 signal selected_cells()
+## 弹窗菜单被点击
+signal popup_menu_clicked(item_name: String)
 
 
 const MetaKey = {
@@ -38,11 +40,12 @@ const MetaKey = {
 
 @onready var data_grid : DataGrid = %DataGrid
 @onready var cell_texture_rect = $CellTextureRect
-@onready var popup_edit_box = $PopupEditBox
+@onready var popup_edit_box = %PopupEditBox
 @onready var v_scroll_bar = %VScrollBar
 @onready var h_scroll_bar = %HScrollBar
 @onready var top_number_bar = %top_number_bar
 @onready var left_number_bar = %left_number_bar
+@onready var grid_popup_menu: PopupMenu = %GridPopupMenu
 
 
 var _last_control_node : Control
@@ -54,7 +57,22 @@ var _grid_data : Dictionary = {}
 var _last_cell_offset : Vector2i = Vector2i(0,0)
 var _cell_to_box_size_dict : Dictionary = {}
 var _drag_cell_line_status : bool = false # 拖拽网格大小
-var _selecting_cells_status : bool = false # 是否正在选中网格
+var _selecting_cells_status : bool = false: # 是否正在选中网格
+	set(v):
+		if _selecting_cells_status != v:
+			_selecting_cells_status = v
+			self.selected_cells.emit()
+
+
+#============================================================
+#  内置
+#============================================================
+func _ready() -> void:
+	grid_popup_menu.add_item("Copy")
+	grid_popup_menu.add_item("Cut")
+	grid_popup_menu.add_item("Paste")
+	grid_popup_menu.add_separator()
+	grid_popup_menu.add_item("Clear")
 
 
 
@@ -279,7 +297,7 @@ func clear_select_cells():
 	data_grid.clear_select_cells()
 
 func get_select_cell_count() -> int:
-	return data_grid.get_selected_cells().size()
+	return data_grid.get_select_cell_count()
 
 func get_data_by_rect(rect: Rect2i) -> Dictionary:
 	var data : Dictionary = {}
@@ -294,11 +312,17 @@ func get_data_by_rect(rect: Rect2i) -> Dictionary:
 				data[row] = column_data
 	return data
 
+func set_grid_menu_disabled(item_name: String, disabled: bool):
+	for id in grid_popup_menu.item_count:
+		if grid_popup_menu.get_item_text(id) == item_name:
+			grid_popup_menu.set_item_disabled(id, disabled)
+			break
+
 
 #============================================================
 #  连接信号
 #============================================================
-func _on_edit_grid_cell_double_clicked(cell: Vector2i):
+func _on_edit_grid_cell_double_clicked(cell: Vector2i): 
 	var real_cell : Vector2i = cell + get_cell_offset()
 	var control_node : Control # 当前操作的节点
 	var rect : Rect2 = data_grid.get_cell_rect(cell) as Rect2
@@ -375,7 +399,18 @@ func _on_data_grid_gui_input(event):
 					# 选中多个网格
 					data_grid.clear_select_cells()
 					_selecting_cells_status = not _drag_cell_line_status
-			
+				
+				MOUSE_BUTTON_RIGHT:
+					# 右键弹窗
+					var cell = data_grid.get_cell_by_mouse_pos() + get_cell_offset()
+					if not data_grid._selected_cells.has(cell):
+						data_grid.clear_select_cells()
+						data_grid.add_select_cellv(cell)
+						data_grid._last_selected_cells_rect = Rect2i(cell, Vector2i(0, 0))
+					grid_popup_menu.position = get_global_mouse_position()
+					grid_popup_menu.popup()
+					self.selected_cells.emit()
+		
 		else:
 			# 松开鼠标按键
 			match event.button_index:
@@ -390,8 +425,6 @@ func _on_data_grid_gui_input(event):
 					else v_scroll_bar).value -= 1
 				
 				MOUSE_BUTTON_LEFT:
-					if _selecting_cells_status:
-						selected_cells.emit()
 					_selecting_cells_status = false
 					
 					if _drag_cell_line_status:
@@ -457,3 +490,7 @@ func _on_data_grid_cell_number_changed(column:int, row:int):
 func _on_data_grid_draw_finished() -> void:
 	_update()
 
+
+func _on_grid_popup_menu_id_pressed(id: int) -> void:
+	var item_name : String = grid_popup_menu.get_item_text(id)
+	self.popup_menu_clicked.emit(item_name)

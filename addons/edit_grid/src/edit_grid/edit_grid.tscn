@@ -88,10 +88,15 @@ offset_bottom = 40.0
 stretch_mode = 2
 
 [node name="PopupEditBox" parent="." instance=ExtResource("3_mn2hw")]
+unique_name_in_owner = true
 visible = false
 layout_mode = 0
 offset_right = 183.0
 offset_bottom = 157.0
+
+[node name="GridPopupMenu" type="PopupMenu" parent="."]
+unique_name_in_owner = true
+size = Vector2i(100, 8)
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]
@@ -104,3 +109,4 @@ offset_bottom = 157.0
 [connection signal="box_size_changed" from="PopupEditBox" to="." method="_on_popup_edit_box_box_size_changed"]
 [connection signal="input_switch_char" from="PopupEditBox" to="." method="_on_popup_edit_box_input_switch_char"]
 [connection signal="popup_hide" from="PopupEditBox" to="." method="_on_popup_edit_box_popup_hide"]
+[connection signal="id_pressed" from="GridPopupMenu" to="." method="_on_grid_popup_menu_id_pressed"]

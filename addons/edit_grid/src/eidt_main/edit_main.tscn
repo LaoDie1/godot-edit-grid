@@ -21,6 +21,41 @@ theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 2
 script = ExtResource("1_cser6")
 
+[node name="dialog" type="Control" parent="."]
+layout_mode = 2
+
+[node name="OpenFileDialog" type="FileDialog" parent="dialog"]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(550, 350)
+ok_button_text = "打开"
+file_mode = 0
+filters = PackedStringArray("*.egd;EGD")
+
+[node name="SaveFileDialog" type="FileDialog" parent="dialog"]
+unique_name_in_owner = true
+title = "Save As"
+size = Vector2i(550, 350)
+filters = PackedStringArray("*.egd;EGD")
+
+[node name="ImportFileDialog" type="FileDialog" parent="dialog"]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(550, 350)
+ok_button_text = "打开"
+file_mode = 0
+filters = PackedStringArray("*.csv;CSV")
+
+[node name="ExportFileDialog" type="FileDialog" parent="dialog"]
+unique_name_in_owner = true
+size = Vector2i(550, 350)
+ok_button_text = "保存"
+filters = PackedStringArray("*.csv;CSV")
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="dialog"]
+unique_name_in_owner = true
+dialog_text = "还没有保存，是否继续操作？"
+
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -87,40 +122,14 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_23jht")
 layout_mode = 2
 clip_text = true
 
-[node name="OpenFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-title = "Open a File"
-size = Vector2i(550, 350)
-ok_button_text = "打开"
-file_mode = 0
-filters = PackedStringArray("*.egd;EGD")
-
-[node name="SaveFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-title = "Save As"
-size = Vector2i(550, 350)
-filters = PackedStringArray("*.egd;EGD")
-
-[node name="ImportFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-title = "Open a File"
-size = Vector2i(550, 350)
-ok_button_text = "打开"
-file_mode = 0
-filters = PackedStringArray("*.csv;CSV")
-
-[node name="ExportFileDialog" type="FileDialog" parent="."]
-unique_name_in_owner = true
-size = Vector2i(550, 350)
-ok_button_text = "保存"
-filters = PackedStringArray("*.csv;CSV")
-
+[connection signal="file_selected" from="dialog/OpenFileDialog" to="." method="_open_grid_data"]
+[connection signal="file_selected" from="dialog/SaveFileDialog" to="." method="_save_grid_data"]
+[connection signal="file_selected" from="dialog/ImportFileDialog" to="." method="_import_file"]
+[connection signal="file_selected" from="dialog/ExportFileDialog" to="." method="_export_file"]
+[connection signal="confirmed" from="dialog/ConfirmationDialog" to="." method="_on_confirmation_dialog_confirmed"]
 [connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="cell_value_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_cell_value_changed"]
 [connection signal="column_width_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_column_width_changed"]
+[connection signal="popup_menu_clicked" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_popup_menu_clicked"]
 [connection signal="row_height_changed" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_row_height_changed"]
 [connection signal="selected_cells" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_selected_cells"]
-[connection signal="file_selected" from="OpenFileDialog" to="." method="_open_grid_data"]
-[connection signal="file_selected" from="SaveFileDialog" to="." method="_save_grid_data"]
-[connection signal="file_selected" from="ImportFileDialog" to="." method="_import_file"]
-[connection signal="file_selected" from="ExportFileDialog" to="." method="_export_file"]

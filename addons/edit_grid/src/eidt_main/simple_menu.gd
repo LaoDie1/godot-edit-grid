@@ -73,7 +73,6 @@ func set_menu_shortcut(menu_path: StringName, data: Dictionary):
 				break
 
 
-
 # 获取菜单的 ID
 func _get_menu_id(menu_path: String) -> int:
 	return _menu_path_to_idx_map.get(menu_path, -1)

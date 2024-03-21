@@ -71,7 +71,7 @@ var _last_hover_cell : Vector2i = Vector2i(-1, -1) # 鼠标经过到的单元格
 var _custom_column_width : Dictionary = {} # 自定义某个列宽
 var _custom_row_height : Dictionary = {} # 自定义某个行高
 var _selected_cells : Dictionary = {} # 选中的单元格
-var _last_selected_cells_rect : Rect2i = Rect2i() # 选中的网格范围（没有计算偏移）
+var _last_selected_cells_rect : Rect2i = Rect2i(-1, -1, 0, 0) # 选中的网格范围（没有计算偏移）
 
 
 
@@ -355,7 +355,7 @@ func remove_custom_row_height(row: int) -> bool:
 func add_select_cell(column: int, row: int):
 	add_select_cellv(Vector2i(column, row))
 
-func add_select_cellv(cell: Vector2):
+func add_select_cellv(cell: Vector2i):
 	_selected_cells[cell] = null
 	queue_redraw()
 
@@ -388,13 +388,14 @@ func add_select_cell_by_pos(begin_pos: Vector2, end_pos: Vector2) -> bool:
 
 func clear_select_cells() -> void:
 	if not _selected_cells.is_empty():
-		_last_selected_cells_rect = Rect2i()
+		_last_selected_cells_rect = Rect2i(-1, -1, 0, 0)
 		_selected_cells.clear()
 		queue_redraw()
 
-
 ## 获取选中的表格
-func get_selected_cells() -> Array:
+func get_select_cells() -> Array:
 	return _selected_cells.keys()
 
+func get_select_cell_count() -> int:
+	return _selected_cells.size()
 
