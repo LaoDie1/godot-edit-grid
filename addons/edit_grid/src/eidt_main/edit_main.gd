@@ -276,20 +276,24 @@ func __menu_paste():
 		var select_rect : Rect2i = edit_grid.get_select_cell_rect()
 		select_rect.position += edit_grid.get_cell_offset()
 		var copy_data : Dictionary = _copied_data.duplicate(true)
-		# 执行
-		var cut : bool = _cut_status
-		var do : Callable = func():
-			if cut:
-				_alter_rect_cell(_copied_rect, _copied_rect, {})
-			_alter_rect_cell(select_rect, _copied_rect, copy_data)
-		# 撤销
 		var selected_data : Dictionary = edit_grid.get_data_by_rect(select_rect)
-		var undo : Callable = func():
-			_alter_rect_cell(select_rect, select_rect, selected_data) # 还原选中的区域的数据
-			if cut:
-				_alter_rect_cell(_copied_rect, _copied_rect, copy_data) # 还原剪切的数据
-		_add_undo_redo( "粘贴", do, undo, true)
+		_add_undo_redo( "粘贴", 
+			__menu_paste_do.bind(_copied_rect, select_rect, copy_data, _cut_status),
+			__menu_paste_undo.bind(_copied_rect, select_rect, copy_data, selected_data, _cut_status),
+			true
+		)
 		_cut_status = false
+
+func __menu_paste_do(copy_rect: Rect2i, select_rect: Rect2i, copy_data: Dictionary, cut: bool):
+	if cut:
+		_alter_rect_cell(_copied_rect, _copied_rect, {})
+	_alter_rect_cell(select_rect, _copied_rect, copy_data)
+
+func __menu_paste_undo(copy_rect: Rect2i, select_rect: Rect2i, copy_data: Dictionary, selected_data: Dictionary, cut: bool):
+	_alter_rect_cell(select_rect, select_rect, selected_data) # 还原选中的区域的数据
+	if cut:
+		_alter_rect_cell(copy_rect, copy_rect, copy_data) # 还原剪切的数据
+
 
 func __menu_clear():
 	var rect : Rect2i = edit_grid.get_select_cell_rect()
