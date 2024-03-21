@@ -66,7 +66,6 @@ func _update():
 	h_scroll_bar.max_value = h_scroll_bar.value + 10
 	v_scroll_bar.max_value = v_scroll_bar.value + 10
 	
-	popup_edit_box.hide()
 	data_grid.redraw(_last_cell_offset)
 	top_number_bar.redraw(
 		_last_cell_offset.x,
@@ -441,6 +440,7 @@ func _value_changed(value):
 		
 		_last_cell_offset = cell_offset
 		_update()
+		popup_edit_box.hide()
 
 
 func _on_popup_edit_box_box_size_changed(box_size):
@@ -451,6 +451,7 @@ func _on_popup_edit_box_box_size_changed(box_size):
 
 func _on_data_grid_cell_number_changed(column:int, row:int):
 	_update()
+	popup_edit_box.hide()
 
 
 func _on_data_grid_draw_finished() -> void:

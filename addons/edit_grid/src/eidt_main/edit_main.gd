@@ -97,6 +97,7 @@ func _ready():
 	menu.set_menu_disabled_by_path("/Edit/Copy", true)
 	menu.set_menu_disabled_by_path("/Edit/Cut", true)
 	menu.set_menu_disabled_by_path("/Edit/Paste", true)
+	menu.set_menu_disabled_by_path("/Edit/Clear", true)
 	
 	prompt.modulate.a = 0
 	
@@ -205,7 +206,8 @@ func _import_file(path: String):
 		match path.get_extension():
 			"csv":
 				_new_file()
-				_current_file_path = path
+				_current_file_path = ""
+				_save_status = false
 				var data : Dictionary = EditGridUtil.get_csv_file_data(path)
 				edit_grid.set_grid_data(data)
 				
@@ -302,6 +304,10 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 		
 		"/Edit/Paste":
 			if not _copied_data.is_empty():
+				# 剪切掉之前的内容
+				if _cut_status:
+					_alter_rect_cell(_copied_rect, _copied_rect, {})
+					_cut_status = false
 				# 粘贴选中的区域的数据
 				var rect : Rect2i = edit_grid.get_select_cell_rect()
 				rect.position += edit_grid.get_cell_offset()
@@ -312,10 +318,6 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 					_alter_rect_cell.bind(rect, rect, selected_data),
 					true
 				)
-				# 剪切掉之前的内容
-				if _cut_status:
-					_alter_rect_cell(_copied_rect, _copied_rect, {})
-					_cut_status = false
 			
 		"/Edit/Clear":
 			var rect : Rect2i = edit_grid.get_select_cell_rect()
@@ -329,7 +331,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			)
 			
 		_:
-			print("没有实现功能。菜单路径：", menu_path)
+			printerr("没有实现功能。菜单路径：", menu_path)
 
 
 func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, action : bool = true):
@@ -389,5 +391,6 @@ func _on_edit_grid_row_height_changed(row: int, last_height: int, height: Varian
 func _on_edit_grid_selected_cells() -> void:
 	menu.set_menu_disabled_by_path("/Edit/Copy", edit_grid.get_select_cell_count()==0)
 	menu.set_menu_disabled_by_path("/Edit/Cut", edit_grid.get_select_cell_count()==0 )
+	menu.set_menu_disabled_by_path("/Edit/Clear", edit_grid.get_select_cell_count()==0 )
 	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
 

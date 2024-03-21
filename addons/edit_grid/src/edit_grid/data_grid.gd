@@ -53,6 +53,10 @@ signal draw_finished()
 	set(v):
 		text_color = v
 		queue_redraw()
+@export var selecte_cell_color : Color = Color.CORNFLOWER_BLUE:
+	set(v):
+		selecte_cell_color = v
+		queue_redraw()
 
 
 var _rows_pos : Array = [] # 每个行所在的像素位置
@@ -146,6 +150,13 @@ func _draw():
 					self.will_draw.emit(draw_data)
 					# 进行绘制
 					_draw_data(draw_data)
+	
+	self.draw_finished.emit()
+	
+	# 绘制边框
+	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
+	
+	# 选中的单元格
 	for row in _rows_pos.size()-1:
 		var cell = Vector2i()
 		cell.y = row
@@ -153,12 +164,7 @@ func _draw():
 			cell.x = column
 			if _selected_cells.has(cell + get_cell_offset()):
 				var rect : Rect2i = get_cell_rect(cell)
-				draw_rect( rect, grid_color, false, grid_line_width + 2)
-	
-	self.draw_finished.emit()
-	
-	# 绘制边框
-	draw_rect(Rect2(Vector2(1,1), size), panel_border_color, false, 1)
+				draw_rect( rect, selecte_cell_color, false, grid_line_width + 2)
 
 
 #============================================================
@@ -288,17 +294,19 @@ func get_pos_by_cell(cell: Vector2i) -> Vector2:
 
 ## 获取这个位置的单元格
 func get_cell_by_pos(pos: Vector2) -> Vector2i:
-	var row_idx : int = -1
-	for row in _rows_pos:
-		if row > pos.y:
-			break
-		row_idx += 1
-	
 	var column_idx : int = -1
-	for column in _columns_pos:
-		if column > pos.x:
-			break
-		column_idx += 1
+	if pos.x > 0:
+		for column in _columns_pos:
+			if column > pos.x:
+				break
+			column_idx += 1
+	
+	var row_idx : int = -1
+	if pos.y > 0:
+		for row in _rows_pos:
+			if row > pos.y:
+				break
+			row_idx += 1
 	
 	return Vector2i(column_idx, row_idx)
 
