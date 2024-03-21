@@ -36,7 +36,7 @@ var _save_status : bool = true:
 			save_status_label.modulate = (
 				Color.WHITE if _save_status else Color.ORANGE
 			)
-			save_status_label.modulate.a = 0.8
+			#save_status_label.modulate.a = 0.8
 var _current_file_path: String = "":
 	set(v):
 		_current_file_path = v
@@ -95,6 +95,10 @@ func _ready():
 	})
 	menu.set_menu_disabled_by_path("/Edit/Undo", true)
 	menu.set_menu_disabled_by_path("/Edit/Redo", true)
+	menu.set_menu_disabled_by_path("/Edit/Copy", true)
+	menu.set_menu_disabled_by_path("/Edit/Cut", true)
+	menu.set_menu_disabled_by_path("/Edit/Paste", true)
+	menu.set_menu_disabled_by_path("/Edit/Clear", true)
 	
 	prompt.modulate.a = 0
 	
@@ -207,7 +211,6 @@ func _import_file(path: String):
 func _copy():
 	_copied_data = {}
 	var rect : Rect2i = edit_grid.get_select_cell_rect()
-	rect.position += edit_grid.get_cell_offset()
 	_copied_rect = rect
 	var value
 	for row in range(rect.position.y, rect.end.y + 1):
@@ -218,7 +221,7 @@ func _copy():
 				column_data[column] = value
 		if not column_data.is_empty():
 			_copied_data[row] = column_data
-	print_debug("复制数据：", _copied_data )
+	print("复制数据：", _copied_data)
 
 
 func _alter_rect_cell(curr_rect: Rect2i, data_offset_rect: Rect2i, data: Dictionary):
@@ -272,8 +275,7 @@ func __menu_new_file():
 func __menu_copy():
 	_copy()
 	if not _copied_data.is_empty():
-		show_prompt("已复制", 0.75)
-		print("复制数据：", _copied_data)
+		show_prompt("已复制数据", 0.75)
 
 func __menu_cut():
 	if edit_grid.get_select_cell_count() > 0:
@@ -284,7 +286,6 @@ func __menu_paste():
 	if not _copied_data.is_empty():
 		# 粘贴选中的区域的数据
 		var select_rect : Rect2i = edit_grid.get_select_cell_rect()
-		select_rect.position += edit_grid.get_cell_offset()
 		var copy_data : Dictionary = _copied_data.duplicate(true)
 		var selected_data : Dictionary = edit_grid.get_data_by_rect(select_rect)
 		_add_undo_redo( "粘贴", 
@@ -307,7 +308,6 @@ func __menu_paste_undo(copy_rect: Rect2i, select_rect: Rect2i, copy_data: Dictio
 
 func __menu_clear():
 	var rect : Rect2i = edit_grid.get_select_cell_rect()
-	rect.position += edit_grid.get_cell_offset()
 	var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
 	if not selected_data.is_empty():
 		_add_undo_redo(

@@ -61,7 +61,7 @@ func _draw():
 		rect.size[draw_direction] = _p_list[i+1] - _p_list[i]
 		rect.size[abs(draw_direction-1)] = size[abs(draw_direction-1)]
 		if draw_direction == 1:
-			rect.position.y += max(0, rect.size.y - height) / 2 - 2
+			rect.position.y += max(0, rect.size.y - height) / 2 - 4
 		var num_idx = i + _offset 
 		draw_string(
 			font, 
