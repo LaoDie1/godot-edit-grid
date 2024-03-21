@@ -291,7 +291,7 @@ func clear_custom_row_height(emit_remove_signal: bool = false) -> void:
 		data_grid._custom_row_height.clear()
 		data_grid.queue_redraw()
 
-## 返回实际的数据位置，已计算的偏移值
+## 返回实际的数据位置，已计算偏移值
 func get_select_cell_rect() -> Rect2i:
 	return data_grid._last_selected_cells_rect as Rect2i
 

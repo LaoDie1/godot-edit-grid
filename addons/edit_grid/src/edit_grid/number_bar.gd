@@ -109,4 +109,8 @@ func redraw(offset: int, blank_width: Dictionary):
 	_offset = offset
 	_blank_width = blank_width
 	queue_redraw()
+	if draw_direction == 1:
+		var font = get_theme_default_font()
+		custom_minimum_size.x = font.get_string_size("0" + str(offset)).x + 4
+		
 

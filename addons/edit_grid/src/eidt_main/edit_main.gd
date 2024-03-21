@@ -221,7 +221,7 @@ func _copy():
 				column_data[column] = value
 		if not column_data.is_empty():
 			_copied_data[row] = column_data
-	print("复制数据：", _copied_data)
+	print("Replicated data: ", _copied_data)
 
 
 func _alter_rect_cell(curr_rect: Rect2i, data_offset_rect: Rect2i, data: Dictionary):
@@ -275,7 +275,7 @@ func __menu_new_file():
 func __menu_copy():
 	_copy()
 	if not _copied_data.is_empty():
-		show_prompt("已复制数据", 0.75)
+		show_prompt("Replicated data.", 1)
 
 func __menu_cut():
 	if edit_grid.get_select_cell_count() > 0:
@@ -294,6 +294,7 @@ func __menu_paste():
 			true
 		)
 		_cut_status = false
+		show_prompt("Pasted.", 1)
 
 func __menu_paste_do(copy_rect: Rect2i, select_rect: Rect2i, copy_data: Dictionary, cut: bool):
 	if cut:
