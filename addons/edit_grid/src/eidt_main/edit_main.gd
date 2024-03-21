@@ -235,6 +235,16 @@ func _alter_rect_cell(curr_rect: Rect2i, data_offset_rect: Rect2i, data: Diction
 			edit_grid.add_data(cell.x, cell.y, row_data.get(data_cell.x), false)
 
 
+func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, action_do_method : bool):
+	_undo_redo.create_action(action_name)
+	_undo_redo.add_do_method(do_method)
+	_undo_redo.add_undo_method(redo_method)
+	_undo_redo.commit_action(action_do_method)
+	
+	menu.set_menu_disabled_by_path("/Edit/Undo", false)
+
+
+
 #============================================================
 #  菜单功能
 #============================================================
@@ -300,7 +310,6 @@ func __menu_clear():
 	rect.position += edit_grid.get_cell_offset()
 	var selected_data : Dictionary = edit_grid.get_data_by_rect(rect)
 	if not selected_data.is_empty():
-		print(selected_data)
 		_add_undo_redo(
 			"粘贴", 
 			_alter_rect_cell.bind(rect, rect, {}),
@@ -345,15 +354,6 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			
 		_:
 			printerr("没有实现功能。菜单路径：", menu_path)
-
-
-func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, action_do_method : bool):
-	_undo_redo.create_action(action_name)
-	_undo_redo.add_do_method(do_method)
-	_undo_redo.add_undo_method(redo_method)
-	_undo_redo.commit_action(action_do_method)
-	
-	menu.set_menu_disabled_by_path("/Edit/Undo", false)
 
 
 func _on_edit_grid_cell_value_changed(cell: Vector2i, last_value, current_value):

@@ -97,6 +97,18 @@ offset_bottom = 157.0
 [node name="GridPopupMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 size = Vector2i(100, 8)
+item_count = 5
+item_0/text = "Copy"
+item_0/id = 0
+item_1/text = "Cut"
+item_1/id = 1
+item_2/text = "Paste"
+item_2/id = 2
+item_3/text = ""
+item_3/id = -1
+item_3/separator = true
+item_4/text = "Clear"
+item_4/id = 4
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
 [connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]

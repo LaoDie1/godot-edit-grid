@@ -68,6 +68,7 @@ var _selecting_cells_status : bool = false: # 是否正在选中网格
 #  内置
 #============================================================
 func _ready() -> void:
+	grid_popup_menu.clear()
 	grid_popup_menu.add_item("Copy")
 	grid_popup_menu.add_item("Cut")
 	grid_popup_menu.add_item("Paste")

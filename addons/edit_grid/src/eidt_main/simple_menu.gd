@@ -64,9 +64,9 @@ func set_menu_shortcut(menu_path: StringName, data: Dictionary):
 	input.alt_pressed = data.get("alt", false)
 	input.shift_pressed = data.get("shift", false)
 	
-	var popup_menu := _menu_path_to_popup_menu_map.get(menu_path) as PopupMenu
-	var menu_name = menu_path.get_file()
+	var popup_menu : PopupMenu = get_menu(menu_path)
 	if popup_menu:
+		var menu_name : String = menu_path.get_file()
 		for i in popup_menu.item_count:
 			if popup_menu.get_item_text(i) == menu_name:
 				popup_menu.set_item_shortcut(i, shortcut)
