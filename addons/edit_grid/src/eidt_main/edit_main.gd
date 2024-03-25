@@ -408,10 +408,10 @@ func _on_edit_grid_selected_cells() -> void:
 	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
 	menu.set_menu_disabled_by_path("/Edit/Clear", edit_grid.get_select_cell_count()==0 )
 	
-	edit_grid.set_grid_menu_disabled("Copy", edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_disabled("Cut",  edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_disabled("Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_disabled("Clear", edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_item_disabled("Copy", edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_item_disabled("Cut",  edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_item_disabled("Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_item_disabled("Clear", edit_grid.get_select_cell_count()==0 )
 
 
 func _on_confirmation_dialog_confirmed() -> void:

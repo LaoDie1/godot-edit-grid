@@ -7,9 +7,8 @@
 #============================================================
 ## 编辑数据表格
 ##
-##双击单元格进行编辑。通过 [method set_data] 方法或者 [method add_data] 方法向表格中添加数据。
-##[br]鼠标滚轮上下滚动数据，Alt+鼠标滚轮进行左右滚动
-##[br]Alt+Enter 进行文本换行
+##[br]双击单元格进行编辑。通过 [method set_data] 方法或者 [method add_data] 方法向表格中添加数据。
+##[br]鼠标滚轮上下滚动数据，[kbd]Alt+鼠标滚轮[/kbd] 进行左右滚动。[kbd]Alt+Enter[/kbd] 进行文本换行。
 @tool
 class_name EditGrid
 extends Panel
@@ -52,6 +51,7 @@ var _last_control_node : Control
 var _last_clicked_pos : Vector2 = Vector2()
 var _last_clicked_cell : Vector2i = Vector2i() # 上次点击的实际的网格
 var _last_clicked_cell_rect : Rect2 = Rect2()
+var _last_edit_cell : Vector2i = Vector2i(-1, -1) # 上次编辑的单元格
 
 var _grid_data : Dictionary = {}
 var _last_cell_offset : Vector2i = Vector2i(0,0)
@@ -143,9 +143,8 @@ func set_config_data(data: Dictionary):
 			data_grid.set(key, data_grid_data[key])
 
 
-## 获取这个单元格上的数据
+## 获取这个单元格上的数据。参数需要是计算过偏移值的
 func get_cell_value(cell: Vector2i):
-	var coords : Vector2i = data_grid.get_cell_offset() + cell
 	var column = cell.x
 	var row = cell.y
 	if _grid_data.has(row):
@@ -314,31 +313,53 @@ func get_data_by_rect(rect: Rect2i) -> Dictionary:
 				data[row] = column_data
 	return data
 
-func set_grid_menu_disabled(item_name: String, disabled: bool):
+
+## 设置网格菜单项的可用性
+func set_grid_menu_item_disabled(item_name: String, disabled: bool):
 	for id in grid_popup_menu.item_count:
 		if grid_popup_menu.get_item_text(id) == item_name:
 			grid_popup_menu.set_item_disabled(id, disabled)
 			break
 
+## 滚动到这个单元格。计算增加过偏移值的
+func scroll_to(cell: Vector2i):
+	cell.x = max(0, cell.x)
+	cell.y = max(0, cell.y)
+	
+	var top_left_cell = get_cell_offset()
+	var right_bottom_cell = get_cell_offset() + data_grid.get_column_row_number() - Vector2i(3,3)
+	var offset = Vector2i()
+	if top_left_cell.x > cell.x:
+		offset.x = cell.x - top_left_cell.x
+	elif top_left_cell.y > cell.y:
+		offset.y = cell.y - top_left_cell.y
+	if right_bottom_cell.x < cell.x:
+		offset.x = cell.x - right_bottom_cell.x
+	elif right_bottom_cell.y < cell.y:
+		offset.y = cell.y - right_bottom_cell.y
+	
+	h_scroll_bar.value += offset.x
+	v_scroll_bar.value += offset.y
 
-#============================================================
-#  连接信号
-#============================================================
-func _on_edit_grid_cell_double_clicked(cell: Vector2i): 
-	var real_cell : Vector2i = cell + get_cell_offset()
+
+## 编辑这个单元格。计算过偏移值的
+func edit_cell(cell: Vector2i):
+	_last_edit_cell = cell
+	
+	data_grid.clear_select_cells()
+	data_grid.add_select_cellv(cell)
+	
 	var control_node : Control # 当前操作的节点
-	var rect : Rect2 = data_grid.get_cell_rect(cell) as Rect2
+	
+	var rect : Rect2 = data_grid.get_cell_rect(cell - get_cell_offset()) as Rect2
 	rect.position += data_grid.global_position
-	rect.size = (_cell_to_box_size_dict[real_cell]
-		if _cell_to_box_size_dict.has(real_cell)
-		else data_grid.get_cell_rect(cell).size
-	)
-	var value = get_cell_value(cell + get_cell_offset())
+	if _cell_to_box_size_dict.has(cell):
+		rect.size = _cell_to_box_size_dict[cell]
+	var value = get_cell_value(cell)
 	if typeof(value) != TYPE_NIL:
 		if not value is Object:
 			popup_edit_box.popup( rect )
 			popup_edit_box.text = str(value)
-			popup_edit_box.set_meta(MetaKey.LAST_CELL, cell + get_cell_offset())
 			control_node = popup_edit_box
 			
 		else:
@@ -354,7 +375,6 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 		#return
 		popup_edit_box.popup( rect )
 		popup_edit_box.text = ""
-		popup_edit_box.set_meta(MetaKey.LAST_CELL, cell + get_cell_offset())
 		control_node = popup_edit_box
 	
 	# 设置显示到的位置
@@ -363,6 +383,10 @@ func _on_edit_grid_cell_double_clicked(cell: Vector2i):
 	_last_control_node = control_node
 
 
+
+#============================================================
+#  连接信号
+#============================================================
 func _on_edit_grid_cell_clicked(cell):
 	if _last_control_node:
 		_last_control_node.visible = false
@@ -370,16 +394,37 @@ func _on_edit_grid_cell_clicked(cell):
 
 func _on_popup_edit_box_popup_hide(text):
 	if popup_edit_box and not popup_edit_box.visible:
-		var cell = popup_edit_box.get_meta(MetaKey.LAST_CELL)
-		if typeof(cell) != TYPE_NIL:
+		var cell = _last_edit_cell
+		if _last_edit_cell != Vector2i(-1, -1):
 			var last_data = get_cell_value(cell)
 			if typeof(last_data) == TYPE_NIL or str(last_data) != popup_edit_box.get_text():
 				add_datav(cell, popup_edit_box.get_text())
-		popup_edit_box.remove_meta(MetaKey.LAST_CELL)
+			_last_edit_cell = Vector2i(-1, -1)
 
 
 func _on_popup_edit_box_input_switch_char(character):
+	var last_cell = _last_edit_cell
 	popup_edit_box.hide()
+	if character in [KEY_ENTER, KEY_TAB]:
+		var cell : Vector2i
+		if character == KEY_ENTER:
+			if Input.is_key_pressed(KEY_SHIFT):
+				cell = last_cell - Vector2i(0, 1)
+			else:
+				cell = last_cell + Vector2i(0, 1)
+			
+		elif character == KEY_TAB:
+			if Input.is_key_pressed(KEY_SHIFT):
+				cell = last_cell - Vector2i(1, 0)
+			else:
+				cell = last_cell + Vector2i(1, 0)
+		
+		cell.x = max(0, cell.x)
+		cell.y = max(0, cell.y)
+		scroll_to(cell)
+		#await Engine.get_main_loop().process_frame
+		edit_cell(cell)
+	
 
 
 func _on_data_grid_gui_input(event):
@@ -472,16 +517,14 @@ func _value_changed(value):
 	if _last_cell_offset != cell_offset:
 		if _last_control_node:
 			_last_control_node.hide()
-		
 		_last_cell_offset = cell_offset
 		_update()
 		popup_edit_box.hide()
 
 
 func _on_popup_edit_box_box_size_changed(box_size):
-	if popup_edit_box and popup_edit_box.has_meta(MetaKey.LAST_CELL):
-		var cell : Vector2i = popup_edit_box.get_meta(MetaKey.LAST_CELL)
-		_cell_to_box_size_dict[cell] = box_size
+	if popup_edit_box:
+		_cell_to_box_size_dict[_last_edit_cell] = box_size
 
 
 func _on_data_grid_cell_number_changed(column:int, row:int):
@@ -496,3 +539,7 @@ func _on_data_grid_draw_finished() -> void:
 func _on_grid_popup_menu_id_pressed(id: int) -> void:
 	var item_name : String = grid_popup_menu.get_item_text(id)
 	self.popup_menu_clicked.emit(item_name)
+
+
+func _on_data_grid_cell_double_clicked(cell: Vector2i) -> void:
+	edit_cell( cell + get_cell_offset() )

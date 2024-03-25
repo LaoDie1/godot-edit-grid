@@ -7,17 +7,17 @@
 #============================================================
 ## 数据展示表格
 ##
-##通过调用 [method redraw_by_data] 方法向表格中绘制数据
+##[br]通过调用 [method redraw_by_data] 方法向表格中绘制数据
 @tool
 class_name DataGrid
 extends Control
 
 
-## 单元格被点击
+## 单元格被点击。单元格是没有偏移过的
 signal cell_clicked(cell: Vector2i)
-## 单元格被双击
+## 单元格被双击。单元格是没有偏移过的
 signal cell_double_clicked(cell: Vector2i)
-## 鼠标经过这个单元格
+## 鼠标经过这个单元格。单元格是没有偏移过的
 signal cell_hovered(cell: Vector2i)
 ## 网格数量大小发生改变
 signal cell_number_changed(column:int, row: int)
@@ -184,8 +184,8 @@ func _draw_data(draw_data: DrawData):
 		else:
 			printerr("数据类型错误")
 
-
 func _draw_text(cell: Vector2i, text: String):
+	# cell 参数需要是没有计算过偏移值的，视觉上的对应的单元格的位置
 	var rect = get_cell_rect(cell)
 	if rect.size.x < 0 or rect.size.y < 0:
 		return
@@ -204,6 +204,7 @@ func _draw_text(cell: Vector2i, text: String):
 	)
 
 func _draw_texture(cell: Vector2i, texture: Texture2D):
+	# cell 参数需要是没有计算过偏移值的，视觉上的对应的单元格的位置
 	var rect = get_cell_rect(cell)
 	var image_size = texture.get_size()
 	rect.size.x = min(rect.size.x, image_size.x)
@@ -225,19 +226,19 @@ func get_max_cell() -> Vector2i:
 	return _max_cell
 
 ## 获取网格最大数量
-func get_max_cell_number() -> Vector2i:
+func get_column_row_number() -> Vector2i:
 	return Vector2i(_columns_pos.size(), _rows_pos.size())
 
-## 获取列宽
+## 获取列宽。需要是算过偏移值的，而非视觉上对应的列
 func get_column_width(column: int):
 	return _custom_column_width.get(column, default_width)
 
-## 获取行高
+## 获取行高。需要是算过偏移值的，而非视觉上对应的行
 func get_row_height(row: int):
 	return _custom_row_height.get(row, default_height)
 
 
-## 重新绘制网格
+## 重新绘制网格。从这个位置开始进行绘制数据
 func redraw(cell_offset: Vector2i = Vector2i(-1, -1)):
 	if cell_offset != Vector2i(-1,-1) and _cell_offset != cell_offset:
 		_cell_offset = cell_offset
@@ -276,13 +277,13 @@ func redraw_by_data(
 	queue_redraw()
 
 
-## 获取这个单元格的矩形大小。这个 cell 不能是偏移的值
+## 获取这个单元格的矩形大小。cell 参数需要是没有计算过偏移值的，视觉上的对应的单元格的位置
 func get_cell_rect(cell: Vector2i) -> Rect2:
 	var pos = get_pos_by_cell(cell)
 	var end = get_pos_by_cell(cell + Vector2i(1, 1))
 	return Rect2( pos, end - pos )
 
-## 获取鼠标位置的单元格
+## 获取鼠标位置的单元格。没有计算过偏移值的，视觉上的对应的单元格的位置
 func get_cell_by_mouse_pos() -> Vector2i:
 	return get_cell_by_pos(get_local_mouse_position())
 
@@ -310,7 +311,7 @@ func get_cell_by_pos(pos: Vector2) -> Vector2i:
 	
 	return Vector2i(column_idx, row_idx)
 
-## 是否在视线可见范围内
+## 是否在视线可见范围内。没有计算过偏移值的，视觉上的对应的单元格的位置
 func is_in_view(cell: Vector2i) -> bool:
 	return cell.x >= 0 \
 		and cell.y >= 0 \

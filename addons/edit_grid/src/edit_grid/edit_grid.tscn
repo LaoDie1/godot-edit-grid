@@ -40,6 +40,7 @@ character_format = true
 [node name="left_number_bar" type="Panel" parent="GridContainer"]
 unique_name_in_owner = true
 clip_contents = true
+custom_minimum_size = Vector2(23, 0)
 layout_mode = 2
 script = ExtResource("2_unwlq")
 draw_direction = 1
@@ -111,7 +112,7 @@ item_4/text = "Clear"
 item_4/id = 4
 
 [connection signal="cell_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_clicked"]
-[connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_edit_grid_cell_double_clicked"]
+[connection signal="cell_double_clicked" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_double_clicked"]
 [connection signal="cell_hovered" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_hovered"]
 [connection signal="cell_number_changed" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_cell_number_changed"]
 [connection signal="draw_finished" from="GridContainer/GridContainer/DataGrid" to="." method="_on_data_grid_draw_finished"]

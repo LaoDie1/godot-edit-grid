@@ -15,7 +15,7 @@ box_size = Vector2(159, 130)
 
 [node name="edit_box" type="TextEdit" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(8, 8)
+custom_minimum_size = Vector2(8, 45)
 layout_mode = 2
 offset_right = 159.0
 offset_bottom = 130.0

@@ -1,5 +1,5 @@
 #============================================================
-#    Edit Box Window
+#    Popup Edit Box
 #============================================================
 # - author: zhangxuetu
 # - datetime: 2023-03-19 11:48:30
@@ -14,7 +14,7 @@ extends Control
 signal popup_hide(text: String)
 ## 盒大小发生改变
 signal box_size_changed(box_size: Vector2)
-## 按下切换键。[enum @GlobalScope.Key.KEY_ENTER] 或 [enum @GlobalScope.Key.KEY_TAB] 键
+## 按下切换键。[constant KEY_ENTER] 或 [constant KEY_TAB] 键
 signal input_switch_char(character: int)
 
 
