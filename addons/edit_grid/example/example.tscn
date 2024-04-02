@@ -37,6 +37,7 @@ offset_left = 438.0
 offset_top = 35.0
 offset_right = 559.0
 offset_bottom = 95.0
+focus_mode = 0
 text = "Print Data"
 
 [connection signal="pressed" from="VBoxContainer/Control/PrintData" to="." method="_on_print_data_pressed"]

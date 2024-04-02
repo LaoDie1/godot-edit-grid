@@ -57,7 +57,7 @@ var _grid_data : Dictionary = {}
 var _last_cell_offset : Vector2i = Vector2i(0,0)
 var _cell_to_box_size_dict : Dictionary = {} # 编辑时的网格大小
 var _drag_cell_line_status : bool = false # 拖拽网格大小
-var _selecting_cells_status : bool = false: # 是否正在选中网格
+var _selecting_cells_status : bool = false: # 是否正在拖拽选中网格
 	set(v):
 		if _selecting_cells_status != v:
 			_selecting_cells_status = v
@@ -321,6 +321,10 @@ func set_grid_menu_item_disabled(item_name: String, disabled: bool):
 			grid_popup_menu.set_item_disabled(id, disabled)
 			break
 
+## 是否选中了单元格
+func is_selected_cells() -> bool:
+	return data_grid.get_select_cell_count() > 0
+
 ## 滚动到这个单元格。计算增加过偏移值的
 func scroll_to(cell: Vector2i):
 	cell.x = max(0, cell.x)
@@ -444,7 +448,10 @@ func _on_data_grid_gui_input(event):
 						]
 					)
 					# 选中多个网格
-					data_grid.clear_select_cells()
+					if data_grid.get_select_cell_count() > 0:
+						data_grid.clear_select_cells()
+						self.selected_cells.emit()
+					
 					_selecting_cells_status = not _drag_cell_line_status
 				
 				MOUSE_BUTTON_RIGHT:

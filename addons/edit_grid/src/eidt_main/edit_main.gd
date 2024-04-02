@@ -224,16 +224,17 @@ func _copy():
 	print("Replicated data: ", _copied_data)
 
 
-func _alter_rect_cell(curr_rect: Rect2i, data_offset_rect: Rect2i, data: Dictionary):
-	# data_offset_rect 用于偏移位置到 data 中的位置设置 curr_rect 位置的表格中
+# set_to_rect 用于设置数据时偏移到的单元格的位置
+# get_data_rect 用于获取数据时偏移到 data 中的数据，然后设置到 set_to_rect 偏移位置的表格中
+func _alter_rect_cell(set_to_rect: Rect2i, get_data_rect: Rect2i, data: Dictionary):
 	var data_cell : Vector2i
 	var cell: Vector2i
-	for row in curr_rect.size.y + 1:
-		data_cell.y = data_offset_rect.position.y + row
+	for row in set_to_rect.size.y + 1: # 从 0 开始根据索引获取 data 所在的位置
+		data_cell.y = get_data_rect.position.y + row
 		var row_data : Dictionary = data.get(data_cell.y, {})
-		for column in curr_rect.size.x + 1:
-			cell = curr_rect.position + Vector2i(column, row)
-			data_cell.x = data_offset_rect.position.x + column
+		for column in set_to_rect.size.x + 1:
+			cell = set_to_rect.position + Vector2i(column, row)
+			data_cell.x = get_data_rect.position.x + column
 			# 粘贴
 			edit_grid.add_data(cell.x, cell.y, row_data.get(data_cell.x), false)
 
@@ -273,6 +274,7 @@ func __menu_new_file():
 	_on_edit_grid_selected_cells()
 
 func __menu_copy():
+	_cut_status = false
 	_copy()
 	if not _copied_data.is_empty():
 		show_prompt("Replicated data.", 1)
@@ -286,10 +288,23 @@ func __menu_paste():
 	if not _copied_data.is_empty():
 		# 粘贴选中的区域的数据
 		var select_rect : Rect2i = edit_grid.get_select_cell_rect()
-		var copy_data : Dictionary = _copied_data.duplicate(true)
-		var selected_data : Dictionary = edit_grid.get_data_by_rect(select_rect)
+		var selected_data : Dictionary = edit_grid.get_data_by_rect(select_rect) # 选中的区域的数据
+		var copy_data : Dictionary = _copied_data.duplicate(true) # 复制的数据
+		var paste_data : Dictionary # 粘贴的数据
+		if _copied_rect.size == Vector2i(0, 0):
+			# 只复制了一格的数据时
+			paste_data = copy_data.duplicate()
+			var value = copy_data.values()[0].values()[0]
+			for row in select_rect.size.y + 1:
+				for column in select_rect.size.x + 1:
+					if not paste_data.has(row + _copied_rect.position.y):
+						paste_data[row + _copied_rect.position.y] = {}
+					paste_data[row + _copied_rect.position.y][column + _copied_rect.position.x] = value
+		else:
+			paste_data = copy_data
+		
 		_add_undo_redo( "粘贴", 
-			__menu_paste_do.bind(_copied_rect, select_rect, copy_data, _cut_status),
+			__menu_paste_do.bind(_copied_rect, select_rect, paste_data, _cut_status),
 			__menu_paste_undo.bind(_copied_rect, select_rect, copy_data, selected_data, _cut_status),
 			true
 		)
@@ -340,7 +355,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 		"/File/Open": _check_save_to_call(open_file_dialog.popup_centered)
 		"/File/Save": __menu_save()
 		"/File/Save As": __menu_save_as()
-		"/File/Export/CSV": _check_save_to_call(export_file_dialog.popup_centered)
+		"/File/Export/CSV": export_file_dialog.popup_centered()
 		"/File/Import/CSV": _check_save_to_call(import_file_dialog.popup_centered)
 		
 		"/File/Print":
@@ -403,15 +418,15 @@ func _on_edit_grid_row_height_changed(row: int, last_height: int, height: Varian
 
 
 func _on_edit_grid_selected_cells() -> void:
-	menu.set_menu_disabled_by_path("/Edit/Copy", edit_grid.get_select_cell_count()==0)
-	menu.set_menu_disabled_by_path("/Edit/Cut",  edit_grid.get_select_cell_count()==0 )
-	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
-	menu.set_menu_disabled_by_path("/Edit/Clear", edit_grid.get_select_cell_count()==0 )
+	menu.set_menu_disabled_by_path("/Edit/Copy", not edit_grid.is_selected_cells())
+	menu.set_menu_disabled_by_path("/Edit/Cut",  not edit_grid.is_selected_cells() )
+	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or not edit_grid.is_selected_cells() )
+	menu.set_menu_disabled_by_path("/Edit/Clear", not edit_grid.is_selected_cells() )
 	
-	edit_grid.set_grid_menu_item_disabled("Copy", edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_item_disabled("Cut",  edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_item_disabled("Paste", _copied_data.is_empty() or edit_grid.get_select_cell_count()==0 )
-	edit_grid.set_grid_menu_item_disabled("Clear", edit_grid.get_select_cell_count()==0 )
+	edit_grid.set_grid_menu_item_disabled("Copy", not edit_grid.is_selected_cells() )
+	edit_grid.set_grid_menu_item_disabled("Cut",  not edit_grid.is_selected_cells() )
+	edit_grid.set_grid_menu_item_disabled("Paste", _copied_data.is_empty() or not edit_grid.is_selected_cells() )
+	edit_grid.set_grid_menu_item_disabled("Clear", not edit_grid.is_selected_cells() )
 
 
 func _on_confirmation_dialog_confirmed() -> void:
