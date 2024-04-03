@@ -93,12 +93,23 @@ func _ready():
 		"/Edit/Paste": {"ctrl": true, "keycode": KEY_V},
 		"/Edit/Clear": {"keycode": KEY_BACKSPACE},
 	})
-	menu.set_menu_disabled_by_path("/Edit/Undo", true)
-	menu.set_menu_disabled_by_path("/Edit/Redo", true)
-	menu.set_menu_disabled_by_path("/Edit/Copy", true)
-	menu.set_menu_disabled_by_path("/Edit/Cut", true)
-	menu.set_menu_disabled_by_path("/Edit/Paste", true)
-	menu.set_menu_disabled_by_path("/Edit/Clear", true)
+	menu.init_icon({
+		"/File/New": get_theme_icon("File", "EditorIcons"),
+		"/File/Open": get_theme_icon("Load", "EditorIcons"),
+		"/File/Save As": get_theme_icon("Save", "EditorIcons"),
+		"/Edit/Copy": get_theme_icon("ActionCopy", "EditorIcons"),
+		"/Edit/Undo": get_theme_icon("UndoRedo", "EditorIcons"),
+		"/Edit/Cut": get_theme_icon("ActionCut", "EditorIcons"),
+		"/Edit/Paste": get_theme_icon("ActionPaste", "EditorIcons"),
+		"/Edit/Clear": get_theme_icon("Clear", "EditorIcons"),
+	})
+	
+	menu.set_item_disabled("/Edit/Undo", true)
+	menu.set_item_disabled("/Edit/Redo", true)
+	menu.set_item_disabled("/Edit/Copy", true)
+	menu.set_item_disabled("/Edit/Cut", true)
+	menu.set_item_disabled("/Edit/Paste", true)
+	menu.set_item_disabled("/Edit/Clear", true)
 	
 	prompt.modulate.a = 0
 	
@@ -150,8 +161,8 @@ func _reset_variable():
 	_undo_redo.clear_history(false)
 	_save_status = true
 	edit_grid.clear_select_cells()
-	menu.set_menu_disabled_by_path("/Edit/Undo", true)
-	menu.set_menu_disabled_by_path("/Edit/Redo", true)
+	menu.set_item_disabled("/Edit/Undo", true)
+	menu.set_item_disabled("/Edit/Redo", true)
 
 
 func _open_grid_data(path: String):
@@ -208,7 +219,7 @@ func _import_file(path: String):
 		show_prompt(path + "文件不存在！")
 
 
-func _copy():
+func _copy_select():
 	_copied_data = {}
 	var rect : Rect2i = edit_grid.get_select_cell_rect()
 	_copied_rect = rect
@@ -222,6 +233,7 @@ func _copy():
 		if not column_data.is_empty():
 			_copied_data[row] = column_data
 	print("Replicated data: ", _copied_data)
+	show_prompt("Replicated data.")
 
 
 # set_to_rect 用于设置数据时偏移到的单元格的位置
@@ -245,12 +257,12 @@ func _add_undo_redo(action_name, do_method: Callable, redo_method: Callable, act
 	_undo_redo.add_undo_method(redo_method)
 	_undo_redo.commit_action(action_do_method)
 	
-	menu.set_menu_disabled_by_path("/Edit/Undo", false)
+	menu.set_item_disabled("/Edit/Undo", false)
 
 
 
 #============================================================
-#  菜单功能
+#  菜单方法
 #============================================================
 func __menu_save():
 	if _current_file_path == "":
@@ -275,13 +287,13 @@ func __menu_new_file():
 
 func __menu_copy():
 	_cut_status = false
-	_copy()
+	_copy_select()
 	if not _copied_data.is_empty():
 		show_prompt("Replicated data.", 1)
 
 func __menu_cut():
 	if edit_grid.get_select_cell_count() > 0:
-		_copy()
+		_copy_select()
 		_cut_status = true
 
 func __menu_paste():
@@ -335,14 +347,14 @@ func __menu_clear():
 
 func __menu_undo():
 	_undo_redo.undo()
-	menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
-	menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
+	menu.set_item_disabled("/Edit/Undo", not _undo_redo.has_undo())
+	menu.set_item_disabled("/Edit/Redo", not _undo_redo.has_redo())
 
 
 func __menu_redo():
 	_undo_redo.redo()
-	menu.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
-	menu.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
+	menu.set_item_disabled("/Edit/Undo", not _undo_redo.has_undo())
+	menu.set_item_disabled("/Edit/Redo", not _undo_redo.has_redo())
 
 
 
@@ -418,10 +430,10 @@ func _on_edit_grid_row_height_changed(row: int, last_height: int, height: Varian
 
 
 func _on_edit_grid_selected_cells() -> void:
-	menu.set_menu_disabled_by_path("/Edit/Copy", not edit_grid.is_selected_cells())
-	menu.set_menu_disabled_by_path("/Edit/Cut",  not edit_grid.is_selected_cells() )
-	menu.set_menu_disabled_by_path("/Edit/Paste", _copied_data.is_empty() or not edit_grid.is_selected_cells() )
-	menu.set_menu_disabled_by_path("/Edit/Clear", not edit_grid.is_selected_cells() )
+	menu.set_item_disabled("/Edit/Copy", not edit_grid.is_selected_cells())
+	menu.set_item_disabled("/Edit/Cut",  not edit_grid.is_selected_cells() )
+	menu.set_item_disabled("/Edit/Paste", _copied_data.is_empty() or not edit_grid.is_selected_cells() )
+	menu.set_item_disabled("/Edit/Clear", not edit_grid.is_selected_cells() )
 	
 	edit_grid.set_grid_menu_item_disabled("Copy", not edit_grid.is_selected_cells() )
 	edit_grid.set_grid_menu_item_disabled("Cut",  not edit_grid.is_selected_cells() )

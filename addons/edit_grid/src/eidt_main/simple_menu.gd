@@ -73,10 +73,6 @@ func set_menu_shortcut(menu_path: StringName, data: Dictionary):
 				break
 
 
-# 获取菜单的 ID
-func _get_menu_id(menu_path: String) -> int:
-	return _menu_path_to_idx_map.get(menu_path, -1)
-
 func _execute_menu_by_path(menu_path: StringName, method_name: String, params: Array = []):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
@@ -85,7 +81,7 @@ func _execute_menu_by_path(menu_path: StringName, method_name: String, params: A
 	return null
 
 ## 设置菜单的可用性
-func set_menu_disabled_by_path(menu_path: StringName, value: bool):
+func set_item_disabled(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
 	if menu and idx > -1:
@@ -98,8 +94,24 @@ func set_menu_as_checkable(menu_path: StringName, value: bool):
 	if menu and idx > 0:
 		menu.set_item_as_checkable(idx, value)
 
+## 初始化这些项的图标
+func init_icon(data: Dictionary):
+	for menu_path in data:
+		set_icon( menu_path, data[menu_path] )
+
+## 设置菜单项的图标
+func set_icon(menu_path: StringName, icon: Texture2D):
+	var popup_menu = get_menu(menu_path)
+	var id = _menu_path_to_idx_map.get(menu_path, -1)
+	if popup_menu and id > -1:
+		var menu_name : String = menu_path.get_file()
+		for i in popup_menu.item_count:
+			if popup_menu.get_item_text(i) == menu_name:
+				popup_menu.set_item_icon(i, icon)
+				break
+
 ## 设置菜单为勾选状态
-func set_menu_check_by_path(menu_path: StringName, value: bool):
+func set_menu_checked(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
 	if menu and idx > 0 and menu.is_item_checked(idx) != value:
@@ -107,7 +119,7 @@ func set_menu_check_by_path(menu_path: StringName, value: bool):
 		self.menu_check_toggled.emit(idx, menu_path)
 
 ## 获取这个菜单的勾选状态
-func get_menu_check_by_path(menu_path: StringName) -> bool:
+func get_menu_checked(menu_path: StringName) -> bool:
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
 	if menu and idx > 0:
@@ -115,7 +127,7 @@ func get_menu_check_by_path(menu_path: StringName) -> bool:
 	return false
 
 ## 切换菜单的勾选状态
-func toggle_menu_check_by_path(menu_path: StringName) -> bool:
+func toggle_menu_checked(menu_path: StringName) -> bool:
 	return _execute_menu_by_path(menu_path, "is_item_checked", [])
 
 ## 获取这个菜单的索引，如果不存在这个菜单，则返回 [code]-1[/code]
@@ -149,6 +161,7 @@ func get_parent_menu_path(menu_path: StringName) -> StringName:
 		if list.has(idx):
 			return parent_path
 	return ""
+
 
 
 #=====================================================
