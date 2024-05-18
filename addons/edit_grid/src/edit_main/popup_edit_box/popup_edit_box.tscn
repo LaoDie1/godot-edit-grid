@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://4xts0ha85fja"]
 
-[ext_resource type="Script" path="res://addons/edit_grid/src/popup_edit_box/popup_edit_box.gd" id="1_qj0ea"]
+[ext_resource type="Script" path="res://addons/edit_grid/src/edit_main/popup_edit_box/popup_edit_box.gd" id="1_rnrxq"]
 
 [node name="PopupEditBox" type="Control"]
 layout_mode = 3
@@ -10,7 +10,7 @@ offset_bottom = 130.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
-script = ExtResource("1_qj0ea")
+script = ExtResource("1_rnrxq")
 box_size = Vector2(159, 130)
 
 [node name="edit_box" type="TextEdit" parent="."]

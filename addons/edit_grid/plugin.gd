@@ -9,7 +9,7 @@
 extends EditorPlugin
 
 
-const EDIT_MAIN = preload("res://addons/edit_grid/src/eidt_main/edit_main.tscn")
+const EDIT_MAIN = preload("res://addons/edit_grid/src/edit_main/edit_main.tscn")
 
 var plugin_control = EDIT_MAIN.instantiate()
 

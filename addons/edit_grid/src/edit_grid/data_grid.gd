@@ -24,7 +24,7 @@ signal cell_number_changed(column:int, row: int)
 ## 准备绘制
 signal ready_draw()
 ## 将要绘制数据
-signal will_draw(data: DrawData)
+signal will_draw(data: Dictionary)
 ## 绘制已完成
 signal draw_finished()
 
@@ -144,9 +144,11 @@ func _draw():
 			for column in _columns_pos.size()-1:
 				data_cell.x = column + _cell_offset.x
 				if columns_data.has(data_cell.x):
-					var draw_data : DrawData = DrawData.new()
-					draw_data.cell = Vector2i(column, row)
-					draw_data.value = columns_data[data_cell.x]
+					var draw_data : Dictionary = {
+						"enabled": true,
+						"cell": Vector2i(column, row),
+						"value": columns_data[data_cell.x],
+					}
 					self.will_draw.emit(draw_data)
 					# 进行绘制
 					_draw_data(draw_data)
@@ -170,7 +172,7 @@ func _draw():
 #============================================================
 #  自定义
 #============================================================
-func _draw_data(draw_data: DrawData):
+func _draw_data(draw_data: Dictionary):
 	if draw_data.enabled:
 		if not draw_data.value is Object:
 			draw_data.value = str(draw_data.value)

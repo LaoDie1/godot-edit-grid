@@ -40,4 +40,5 @@ offset_bottom = 95.0
 focus_mode = 0
 text = "Print Data"
 
+[connection signal="popup_menu_clicked" from="VBoxContainer/EditGrid" to="." method="_on_edit_grid_popup_menu_clicked"]
 [connection signal="pressed" from="VBoxContainer/Control/PrintData" to="." method="_on_print_data_pressed"]

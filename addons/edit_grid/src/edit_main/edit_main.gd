@@ -15,7 +15,7 @@ extends MarginContainer
 const FILE_FORMAT = "egd" # Edit Grid Data
 
 
-@onready var menu = %Menu
+@onready var menu : SimpleMenu = %Menu
 @onready var edit_grid = %EditGrid
 @onready var file_path_label = %FilePathLabel
 @onready var save_status_label = %SaveStatusLabel
@@ -71,13 +71,14 @@ func _ready():
 		"File": [
 			"New", "Open", "-", 
 			"Save", "Save As", "-", 
-			{ "Export": ["JSON", "CSV"] },
+			{ "Export": ["CSV", "JSON", ] },
 			{ "Import": ["CSV"] }, "-",
 			"Print",
 		],
 		"Edit": [
 			"Undo", "Redo", "-",
-			"Copy", "Cut", "Paste", "-", "Clear"
+			"Copy", "Cut", "Paste", "-", 
+			"Clear",
 		],
 	})
 	# 快捷键
@@ -208,9 +209,9 @@ func _import_file(path: String):
 			"csv":
 				__menu_new_file()
 				_current_file_path = ""
-				_save_status = false
 				var data : Dictionary = EditGridUtil.get_csv_file_data(path)
 				edit_grid.set_grid_data(data)
+				_save_status = true
 				
 			"json":
 				pass

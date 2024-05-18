@@ -15,11 +15,11 @@ extends MenuBar
 
 ## 菜单被点击
 ##[br]
-##[br][code]idx[/code] 菜单的索引值
-##[br][code]menu_path[/code] 菜单路径
+##[br][kbd]idx[/kbd] 菜单的索引值
+##[br][kbd]menu_path[/kbd] 菜单路径
 signal menu_pressed(idx: int, menu_path: StringName)
 ## 复选框状态发生切换
-signal menu_check_toggled(idx: int, menu_path: StringName)
+signal menu_check_toggled(idx: int, menu_path: StringName, status: bool)
 
 
 # 自动增长的菜单 idx。用以下面添加菜单项时记录添加的菜单的 idx
@@ -39,15 +39,15 @@ var _child_menu_path_idx_list := {}
 #=====================================================
 ## 获取弹窗菜单
 ##[br]
-##[br][code]menu_path[/code]  这个菜单路径的父弹窗菜单节点
+##[br][kbd]menu_path[/kbd]  这个菜单路径的父弹窗菜单节点
 func get_menu(menu_path: StringName) -> PopupMenu:
 	return _menu_path_to_popup_menu_map.get(menu_path) as PopupMenu
 
 
 ## 添加快捷键
 ##[br]
-##[br][code]menu_path[/code]  菜单路径
-##[br][code]data[/code]  快捷键数据，示例数据：[kbd]ctrl + shift + C[/kbd] 快捷键
+##[br][kbd]menu_path[/kbd]  菜单路径
+##[br][kbd]data[/kbd]  快捷键数据，示例数据：[kbd]ctrl + shift + C[/kbd] 快捷键
 ##[codeblock]
 ##{
 ##    "ctrl": true,
@@ -76,8 +76,8 @@ func set_menu_shortcut(menu_path: StringName, data: Dictionary):
 func _execute_menu_by_path(menu_path: StringName, method_name: String, params: Array = []):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
-	if menu and idx > 0:
-		return menu.call(method_name, params)
+	if menu and idx > -1:
+		return menu.callv(method_name, params)
 	return null
 
 ## 设置菜单的可用性
@@ -87,17 +87,22 @@ func set_item_disabled(menu_path: StringName, value: bool):
 	if menu and idx > -1:
 		menu.set_item_disabled(idx, value)
 
-## 设置菜单为复选框
+## 设置菜单复选框启用状态
 func set_menu_as_checkable(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
-	if menu and idx > 0:
+	if menu and idx > -1:
 		menu.set_item_as_checkable(idx, value)
+	else:
+		push_warning("没有 %s 菜单" % menu_path)
 
-## 初始化这些项的图标
-func init_icon(data: Dictionary):
-	for menu_path in data:
-		set_icon( menu_path, data[menu_path] )
+## 菜单复选框是否是启用的
+func is_menu_as_checkable(menu_path: StringName) -> bool:
+	var menu = get_menu(menu_path)
+	var idx = get_menu_idx(menu_path)
+	if menu and idx > -1:
+		return menu.is_item_checkable(idx)
+	return false
 
 ## 设置菜单项的图标
 func set_icon(menu_path: StringName, icon: Texture2D):
@@ -114,23 +119,30 @@ func set_icon(menu_path: StringName, icon: Texture2D):
 func set_menu_checked(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
-	if menu and idx > 0 and menu.is_item_checked(idx) != value:
-		menu.set_item_checked(idx, value)
-		self.menu_check_toggled.emit(idx, menu_path)
+	if menu and idx > -1:
+		menu.set_item_as_checkable(idx, true)
+		if menu.is_item_checked(idx) != value:
+			menu.set_item_checked(idx, value)
+			self.menu_check_toggled.emit(idx, menu_path, value)
+	else:
+		printerr("没有这个菜单：", menu_path)
 
 ## 获取这个菜单的勾选状态
 func get_menu_checked(menu_path: StringName) -> bool:
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
-	if menu and idx > 0:
+	if menu and idx > -1:
 		return menu.is_item_checked(idx)
 	return false
 
 ## 切换菜单的勾选状态
 func toggle_menu_checked(menu_path: StringName) -> bool:
-	return _execute_menu_by_path(menu_path, "is_item_checked", [])
+	var id = get_menu_idx(menu_path)
+	var status = _execute_menu_by_path(menu_path, "is_item_checked", [id])
+	set_menu_checked(menu_path, not status)
+	return not status
 
-## 获取这个菜单的索引，如果不存在这个菜单，则返回 [code]-1[/code]
+## 获取这个菜单的索引，如果不存在这个菜单，则返回 [kbd]-1[/kbd]
 func get_menu_idx(menu_path: StringName) -> int:
 	var id = _menu_path_to_idx_map.get(menu_path, -1)
 	var menu = get_menu(menu_path)
@@ -170,9 +182,11 @@ func get_parent_menu_path(menu_path: StringName) -> StringName:
 ## 初始化菜单。示例：
 ## [codeblock]
 ## init_menu({
-##    "File": ["Open", "Save", "Save As", {
-##        "Export As...": [ "Export PNG", "Export JPG" ]
-##    } ],
+##    "File": [
+##        "Open", "Save", "Save As", "-",
+##        {"Export As": [ "Export PNG", "Export JPG" ] }, "-",
+##        "Quit",
+##    ],
 ##    "item": {
 ##        "letter": ["a", "b", "c"],
 ##        "number": [ "1", "2"],
@@ -197,11 +211,23 @@ func init_shortcut(data_list: Dictionary):
 		data = data_list[menu_path]
 		set_menu_shortcut(menu_path, data)
 
+## 初始化这些项的图标。示例：
+##[codeblock]
+##{
+##    "/File/Open": Texture2D,
+##    "/File/Save": Texture2D,
+##    "/Edit/Copy": Texture2D,
+##}
+##[/codeblock]
+func init_icon(data: Dictionary):
+	for menu_path in data:
+		set_icon( menu_path, data[menu_path] )
+
 
 ## 添加菜单项
 ##[br]
-##[br][code]menu_data[/code]  这个菜单项包含的数据
-##[br][code]parent_menu_path[/code]  父级菜单路径
+##[br][kbd]menu_data[/kbd]  这个菜单项包含的数据
+##[br][kbd]parent_menu_path[/kbd]  父级菜单路径
 func add_menu(menu_data, parent_menu_path: StringName):
 	var parent_popup_menu : PopupMenu = get_menu(parent_menu_path)
 	
@@ -303,8 +329,8 @@ func clear_menu(menu_path: StringName) -> bool:
 
 # 创建菜单
 #[br]
-#[br][code]menu_path[/code]  菜单路径
-#[br][code]parent_menu[/code]  父级菜单
+#[br][kbd]menu_path[/kbd]  菜单路径
+#[br][kbd]parent_menu[/kbd]  父级菜单
 func _create_menu(menu_path: StringName, parent_menu: PopupMenu):
 	# 切分菜单名
 	var parent_menu_names := menu_path.split("/")
@@ -324,6 +350,25 @@ func _create_menu(menu_path: StringName, parent_menu: PopupMenu):
 			parent_menu.add_submenu_item( menu_name, menu_name )
 		# 开始记录这个菜单，用以这个菜单的下一级别的菜单
 		parent_menu = get_menu(sub_menu_path)
+
+
+## 解析快捷键字符串。将 [code]Ctrl+S[/code] 转为 [code]{"ctrl": true, "keycode": KEY_S}[/code]
+static func parse_shortcut(shortcut_text: String) -> Dictionary:
+	const CONTROL_KEY = ["ctrl", "shift", "alt"]
+	var list = shortcut_text.split("+")
+	var keymap : Dictionary = {
+		"keycode": KEY_NONE,
+		"ctrl": false,
+		"shift": false,
+		"alt": false,
+	}
+	for key in list:
+		key = str(key).strip_edges().to_lower()
+		if CONTROL_KEY.has(key):
+			keymap[key] = true
+		else:
+			keymap["keycode"] = OS.find_keycode_from_string(key)
+	return keymap
 
 
 
@@ -346,6 +391,10 @@ func _set_popup_menu(menu_path: StringName, menu_popup: PopupMenu):
 
 
 func _id_pressed(id):
-	self.menu_pressed.emit(id, _idx_to_menu_path_map[id])
+	var menu_path = _idx_to_menu_path_map[id]
+	if is_menu_as_checkable(menu_path):
+		var status = get_menu_checked(menu_path)
+		set_menu_checked(menu_path, not status)
+	self.menu_pressed.emit(id, menu_path)
 
 

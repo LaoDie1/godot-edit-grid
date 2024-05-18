@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/edit_grid.gd" id="1_sn8bn"]
 [ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/number_bar.gd" id="2_unwlq"]
-[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/edit_grid/src/popup_edit_box/popup_edit_box.tscn" id="3_mn2hw"]
+[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/edit_grid/src/edit_main/popup_edit_box/popup_edit_box.tscn" id="3_mn2hw"]
 [ext_resource type="Script" path="res://addons/edit_grid/src/edit_grid/data_grid.gd" id="3_mt44m"]
 
 [node name="EditGrid" type="Panel"]

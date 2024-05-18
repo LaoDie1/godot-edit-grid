@@ -29,6 +29,10 @@ extends Panel
 	set(v):
 		character_format = v
 		queue_redraw()
+@export_range(0, 1, 1, "or_greater", "hide_slider") var offset : int = 0:
+	set(v):
+		offset = v
+		queue_redraw()
 
 var _offset : int = 0
 var _blank_width : Dictionary = {}
@@ -62,7 +66,7 @@ func _draw():
 		rect.size[abs(draw_direction-1)] = size[abs(draw_direction-1)]
 		if draw_direction == 1:
 			rect.position.y += max(0, rect.size.y - height) / 2 - 4
-		var num_idx = i + _offset 
+		var num_idx = i + _offset + offset
 		draw_string(
 			font, 
 			rect.position + Vector2(0, height), 

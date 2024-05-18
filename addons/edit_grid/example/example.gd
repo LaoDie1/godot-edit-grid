@@ -45,5 +45,13 @@ func _ready():
 	#})
 
 
+#============================================================
+#  连接信号
+#============================================================
 func _on_print_data_pressed():
 	print( JSON.stringify( edit_grid.get_grid_data(), "\t" ) )
+
+
+func _on_edit_grid_popup_menu_clicked(item_name: String) -> void:
+	pass # Replace with function body.
+	print("没有实现右键菜单功能：", item_name)
